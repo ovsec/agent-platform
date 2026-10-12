@@ -92,7 +92,7 @@ jobs:
       ENVIRONMENT: ${{ needs.validate.outputs.environment }}
     steps:
       - uses: actions/checkout@v5
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         if: hashFiles('Dockerfile', 'agents/*/Dockerfile') != ''
         with:
           registry: ghcr.io
