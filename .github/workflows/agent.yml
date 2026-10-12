@@ -36,7 +36,7 @@ jobs:
     outputs:
       environment: ${{ steps.target.outputs.environment }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/create-github-app-token@v2
         id: token
         with:
@@ -44,7 +44,7 @@ jobs:
           private-key: ${{ secrets.AGENT_CATALOG_APP_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: agent-platform
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ github.repository_owner }}/agent-platform
           ref: ${{ inputs.platform-ref }}
@@ -91,7 +91,7 @@ jobs:
     env:
       ENVIRONMENT: ${{ needs.validate.outputs.environment }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: docker/login-action@v3
         if: hashFiles('Dockerfile', 'agents/*/Dockerfile') != ''
         with:
@@ -106,7 +106,7 @@ jobs:
           private-key: ${{ secrets.AGENT_CATALOG_APP_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: agent-catalog
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ github.repository_owner }}/agent-catalog
           token: ${{ steps.token.outputs.token }}
