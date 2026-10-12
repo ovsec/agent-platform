@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /apps/portal
+    schedule: {interval: weekly}
+    groups:
+      minor-and-patch: {update-types: [minor, patch]}
+  - package-ecosystem: pip
+    directory: /services/langflow-adapter
+    schedule: {interval: weekly}
+  - package-ecosystem: docker
+    directories: [/apps/portal, /services/langflow-adapter]
+    schedule: {interval: weekly}
+  - package-ecosystem: github-actions
+    directories: [/, /templates/agent-catalog, /templates/agent-template]
+    schedule: {interval: monthly}

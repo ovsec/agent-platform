@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1722" width="1600" height="1722" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+<title>Agent platform: data flow</title><defs>
+<marker id="m-req" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="m-ret" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+<marker id="m-id" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+<marker id="m-llm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker>
+<marker id="m-hitl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#db2777"/></marker>
+<marker id="m-pub" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+<marker id="m-adm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+<style>
+.t{font-size:12px;fill:#334155}.s{font-size:11px;fill:#64748b}.sec{font-size:12px;font-weight:700;fill:#475569;letter-spacing:1px}
+.ml{font-size:12px;fill:#0f172a;paint-order:stroke;stroke:#f8fafc;stroke-width:4px}
+.ms{font-size:11px;fill:#64748b;paint-order:stroke;stroke:#f8fafc;stroke-width:4px}
+.nt{font-size:11px;fill:#334155}.num{font-size:10px;font-weight:700;fill:#ffffff}
+.lh{font-size:13px;font-weight:700;fill:#0f172a}.lsub{font-size:11px;fill:#64748b}
+</style></defs>
+<rect width="1600" height="1722" fill="#f8fafc"/>
+<text x="40" y="42" font-size="24" font-weight="800" fill="#0f172a" text-anchor="start">Agent platform · data flow</text>
+<text x="40" y="64" class="s" text-anchor="start">What travels where for sign-in, an agent run, human-in-the-loop, and publishing. Numbers give the order; dashed = responses / streams.</text>
+<rect x="7" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#334155" stroke-width="1.6"/>
+<text x="95" y="106" class="lh" text-anchor="middle">Browser</text>
+<text x="95" y="124" class="lsub" text-anchor="middle">end user</text>
+<line x1="95" y1="136" x2="95" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="207" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#005d92" stroke-width="1.6"/>
+<text x="295" y="106" class="lh" text-anchor="middle">Portal</text>
+<text x="295" y="124" class="lsub" text-anchor="middle">Next.js :3100</text>
+<line x1="295" y1="136" x2="295" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="407" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="495" y="106" class="lh" text-anchor="middle">OIDC IdP</text>
+<text x="495" y="124" class="lsub" text-anchor="middle">Keycloak / Entra</text>
+<line x1="495" y1="136" x2="495" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="607" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="695" y="106" class="lh" text-anchor="middle">agentgateway</text>
+<text x="695" y="124" class="lsub" text-anchor="middle">:4100 agent API</text>
+<line x1="695" y1="136" x2="695" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="807" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#0d9488" stroke-width="1.6"/>
+<text x="895" y="106" class="lh" text-anchor="middle">Langflow adapter</text>
+<text x="895" y="124" class="lsub" text-anchor="middle">AG-UI ↔ Workflow API</text>
+<line x1="895" y1="136" x2="895" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="1007" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#0d9488" stroke-width="1.6"/>
+<text x="1095" y="106" class="lh" text-anchor="middle">Langflow runtime</text>
+<text x="1095" y="124" class="lsub" text-anchor="middle">flows, memory, HITL</text>
+<line x1="1095" y1="136" x2="1095" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="1207" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="1295" y="106" class="lh" text-anchor="middle">agentgateway</text>
+<text x="1295" y="124" class="lsub" text-anchor="middle">:4102 LLM / MCP</text>
+<line x1="1295" y1="136" x2="1295" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<rect x="1407" y="84" width="176" height="52" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="1.6"/>
+<text x="1495" y="106" class="lh" text-anchor="middle">Ollama · business APIs</text>
+<text x="1495" y="124" class="lsub" text-anchor="middle">models · tools</text>
+<line x1="1495" y1="136" x2="1495" y2="1386" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 5"/>
+<path d="M101,212 L287,212" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#m-id)"/>
+<circle cx="111" cy="199" r="9" fill="#7c3aed"/>
+<text x="111" y="203" class="num" text-anchor="middle">1</text>
+<text x="125" y="203" class="ml" text-anchor="start">Sign in</text>
+<path d="M101,252 L487,252" stroke="#7c3aed" stroke-width="1.8" fill="none" marker-end="url(#m-id)"/>
+<circle cx="111" cy="239" r="9" fill="#7c3aed"/>
+<text x="111" y="243" class="num" text-anchor="middle">2</text>
+<text x="125" y="243" class="ml" text-anchor="start">redirect → login page (username / password, MFA in Entra)</text>
+<text x="125" y="266" class="ms" text-anchor="start">authorization_endpoint on the public issuer (localhost:8180)</text>
+<path d="M489,300 L303,300" stroke="#7c3aed" stroke-width="1.8" fill="none" stroke-dasharray="6 4" marker-end="url(#m-id)"/>
+<circle cx="311" cy="287" r="9" fill="#7c3aed"/>
+<text x="311" y="291" class="num" text-anchor="middle">3</text>
+<text x="325" y="291" class="ml" text-anchor="start">code → token exchange (server side)</text>
+<text x="325" y="314" class="ms" text-anchor="start">via OIDC_INTERNAL_ISSUER (keycloak:8080); access + refresh token in encrypted cookie</text>
+<rect x="20" y="150" width="1560" height="180" rx="10" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="32" y="168" class="sec" text-anchor="start">A · SIGN-IN</text>
+<text x="32" y="184" class="s" text-anchor="start">generic OAuth2 / OIDC code flow with PKCE</text>
+<path d="M101,410 L287,410" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#m-req)"/>
+<circle cx="111" cy="397" r="9" fill="#2563eb"/>
+<text x="111" y="401" class="num" text-anchor="middle">4</text>
+<text x="125" y="401" class="ml" text-anchor="start">POST /api/agents/{slug}/run</text>
+<text x="125" y="424" class="ms" text-anchor="start">RunAgentInput {threadId, runId, messages}</text>
+<path d="M301,458 L687,458" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#m-req)"/>
+<circle cx="311" cy="445" r="9" fill="#2563eb"/>
+<text x="311" y="449" class="num" text-anchor="middle">5</text>
+<text x="325" y="449" class="ml" text-anchor="start">+ Authorization: Bearer &lt;access token&gt;</text>
+<text x="325" y="472" class="ms" text-anchor="start">+ x-agui-thread-id</text>
+<rect x="602.0" y="482" width="186" height="59" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="610.0" y="500" class="nt" text-anchor="start">validate JWT (iss, aud, exp; JWKS</text>
+<text x="610.0" y="515" class="nt" text-anchor="start">from IdP) · CEL: roles ∩ agent roles</text>
+<text x="610.0" y="530" class="nt" text-anchor="start">audit log: user, agent, thread</text>
+<path d="M701,573 L887,573" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#m-req)"/>
+<circle cx="711" cy="560" r="9" fill="#2563eb"/>
+<text x="711" y="564" class="num" text-anchor="middle">6</text>
+<text x="725" y="564" class="ml" text-anchor="start">POST /run (no user token)</text>
+<text x="725" y="587" class="ms" text-anchor="start">x-langflow-flow-id · x-end-user-id · x-api-key</text>
+<rect x="807.0" y="597" width="176" height="59" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="815.0" y="615" class="nt" text-anchor="start">flow can pause? (cached 30 s)</text>
+<text x="815.0" y="630" class="nt" text-anchor="start">no → mode stream (tokens)</text>
+<text x="815.0" y="645" class="nt" text-anchor="start">yes → mode background + events</text>
+<path d="M901,688 L1087,688" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#m-req)"/>
+<circle cx="911" cy="675" r="9" fill="#2563eb"/>
+<text x="911" y="679" class="num" text-anchor="middle">7</text>
+<text x="925" y="679" class="ml" text-anchor="start">POST /api/v2/workflows</text>
+<text x="925" y="702" class="ms" text-anchor="start">flow_id · input_value · session_id = threadId</text>
+<rect x="1007.0" y="712" width="176" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.2"/>
+<text x="1015.0" y="730" class="nt" text-anchor="start">session = &lt;user&gt;::&lt;thread&gt;</text>
+<text x="1015.0" y="745" class="nt" text-anchor="start">Agent: plan, call model/tools</text>
+<path d="M1101,788 L1287,788" stroke="#d97706" stroke-width="1.8" fill="none" marker-end="url(#m-llm)"/>
+<circle cx="1111" cy="775" r="9" fill="#d97706"/>
+<text x="1111" y="779" class="num" text-anchor="middle">8</text>
+<text x="1125" y="779" class="ml" text-anchor="start">POST /v1/chat/completions</text>
+<text x="1125" y="802" class="ms" text-anchor="start">runtime key · x-end-user-id · x-agent-slug · x-agui-thread-id</text>
+<path d="M1301,832 L1487,832" stroke="#d97706" stroke-width="1.8" fill="none" marker-end="url(#m-llm)"/>
+<circle cx="1311" cy="819" r="9" fill="#d97706"/>
+<text x="1311" y="823" class="num" text-anchor="middle">9</text>
+<text x="1325" y="823" class="ml" text-anchor="start">ollama/qwen3:8b → Ollama</text>
+<text x="1325" y="846" class="ms" text-anchor="start">Logs/Analytics: user, agent, tokens</text>
+<path d="M1101,876 L1487,876" stroke="#d97706" stroke-width="1.8" fill="none" marker-end="url(#m-llm)"/>
+<circle cx="1111" cy="863" r="9" fill="#d97706"/>
+<text x="1111" y="867" class="num" text-anchor="middle">10</text>
+<text x="1125" y="867" class="ml" text-anchor="start">tool call (make_api_request → business API)</text>
+<path d="M1089,926 L903,926" stroke="#2563eb" stroke-width="1.8" fill="none" stroke-dasharray="6 4" marker-end="url(#m-ret)"/>
+<circle cx="911" cy="913" r="9" fill="#2563eb"/>
+<text x="911" y="917" class="num" text-anchor="middle">11</text>
+<text x="925" y="917" class="ml" text-anchor="start">AG-UI SSE events</text>
+<text x="925" y="940" class="ms" text-anchor="start">TEXT_MESSAGE_* · TOOL_CALL_* · RUN_FINISHED</text>
+<path d="M889,976 L103,976" stroke="#2563eb" stroke-width="1.8" fill="none" stroke-dasharray="6 4" marker-end="url(#m-ret)"/>
+<circle cx="111" cy="963" r="9" fill="#2563eb"/>
+<text x="111" y="967" class="num" text-anchor="middle">12</text>
+<text x="125" y="967" class="ml" text-anchor="start">same events with the client&#x27;s threadId/runId, langflow.* dropped → back through gateway and portal</text>
+<text x="125" y="990" class="ms" text-anchor="start">portal renders tokens, tool cards, markdown</text>
+<rect x="20" y="346" width="1560" height="660" rx="10" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="32" y="364" class="sec" text-anchor="start">B · AGENT RUN</text>
+<text x="32" y="380" class="s" text-anchor="start">standard AG-UI end to end; Langflow translated by the adapter</text>
+<rect x="1007.0" y="1066" width="176" height="44" rx="6" fill="#ffffff" stroke="#db2777" stroke-width="1.2"/>
+<text x="1015.0" y="1084" class="nt" text-anchor="start">Human Input node, or a tool</text>
+<text x="1015.0" y="1099" class="nt" text-anchor="start">with approval_actions → pause</text>
+<path d="M1089,1144 L903,1144" stroke="#db2777" stroke-width="1.8" fill="none" stroke-dasharray="6 4" marker-end="url(#m-hitl)"/>
+<circle cx="911" cy="1131" r="9" fill="#db2777"/>
+<text x="911" y="1135" class="num" text-anchor="middle">13</text>
+<text x="925" y="1135" class="ml" text-anchor="start">CUSTOM langflow.human_input_required</text>
+<text x="925" y="1158" class="ms" text-anchor="start">request_id · options · prompt</text>
+<path d="M889,1192 L103,1192" stroke="#db2777" stroke-width="1.8" fill="none" stroke-dasharray="6 4" marker-end="url(#m-hitl)"/>
+<circle cx="111" cy="1179" r="9" fill="#db2777"/>
+<text x="111" y="1183" class="num" text-anchor="middle">14</text>
+<text x="125" y="1183" class="ml" text-anchor="start">RUN_FINISHED {outcome: interrupt}</text>
+<text x="125" y="1206" class="ms" text-anchor="start">id = job + request + event id · message · responseSchema (options) · expiresAt</text>
+<path d="M101,1246 L887,1246" stroke="#db2777" stroke-width="1.8" fill="none" marker-end="url(#m-hitl)"/>
+<circle cx="111" cy="1233" r="9" fill="#db2777"/>
+<text x="111" y="1237" class="num" text-anchor="middle">15</text>
+<text x="125" y="1237" class="ml" text-anchor="start">new run with resume: [{interruptId, status, payload: {action_id}}]</text>
+<text x="125" y="1260" class="ms" text-anchor="start">via portal (Bearer) and gateway (JWT, roles) as in 4–6</text>
+<path d="M901,1296 L1087,1296" stroke="#db2777" stroke-width="1.8" fill="none" marker-end="url(#m-hitl)"/>
+<circle cx="911" cy="1283" r="9" fill="#db2777"/>
+<text x="911" y="1287" class="num" text-anchor="middle">16</text>
+<text x="925" y="1287" class="ml" text-anchor="start">POST /{job}/resume + GET /{job}/events (Last-Event-ID)</text>
+<text x="925" y="1310" class="ms" text-anchor="start">cancelled → POST /stop · other user → &#x27;job not found&#x27;</text>
+<path d="M1089,1346 L103,1346" stroke="#2563eb" stroke-width="1.8" fill="none" stroke-dasharray="6 4" marker-end="url(#m-ret)"/>
+<circle cx="111" cy="1333" r="9" fill="#2563eb"/>
+<text x="111" y="1337" class="num" text-anchor="middle">17</text>
+<text x="125" y="1337" class="ml" text-anchor="start">remaining events (branch output / tool result, answer) → portal</text>
+<text x="125" y="1360" class="ms" text-anchor="start">as in 11–12</text>
+<rect x="20" y="1022" width="1560" height="354" rx="10" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="32" y="1040" class="sec" text-anchor="start">C · HUMAN IN THE LOOP</text>
+<text x="32" y="1056" class="s" text-anchor="start">Langflow pause/resume mapped to standard AG-UI interrupts (stateless adapter)</text>
+<rect x="20" y="1392" width="1560" height="270" rx="10" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="32" y="1410" class="sec" text-anchor="start">D · CONTROL PLANE</text>
+<text x="32" y="1426" class="s" text-anchor="start">no restarts: Langflow API upserts, gateway hot-reloads config.yaml, UI overlay in the gateway DB</text>
+<rect x="40" y="1456" width="250" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="52" y="1478" class="lh" text-anchor="start">Developer</text>
+<text x="52" y="1498" class="nt" text-anchor="start">builds a flow in the Langflow Builder (:7870)</text>
+<rect x="330" y="1456" width="250" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="342" y="1478" class="lh" text-anchor="start">publish.py</text>
+<text x="342" y="1498" class="nt" text-anchor="start">export · gateway model · flows/ + agents/</text>
+<rect x="620" y="1456" width="250" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="632" y="1478" class="lh" text-anchor="start">Langflow runtime</text>
+<text x="632" y="1498" class="nt" text-anchor="start">upsert flow by API (+ Builder)</text>
+<rect x="910" y="1456" width="250" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="922" y="1478" class="lh" text-anchor="start">gen-gateway.py</text>
+<text x="922" y="1498" class="nt" text-anchor="start">config.yaml ← base + agents/ + platform.yaml</text>
+<rect x="1200" y="1456" width="250" height="56" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="1212" y="1478" class="lh" text-anchor="start">agentgateway</text>
+<text x="1212" y="1498" class="nt" text-anchor="start">watches config.yaml → route live in seconds</text>
+<path d="M294,1484 L324,1484" stroke="#059669" stroke-width="1.8" marker-end="url(#m-pub)"/>
+<path d="M584,1484 L614,1484" stroke="#059669" stroke-width="1.8" marker-end="url(#m-pub)"/>
+<path d="M874,1484 L904,1484" stroke="#059669" stroke-width="1.8" marker-end="url(#m-pub)"/>
+<path d="M1164,1484 L1194,1484" stroke="#059669" stroke-width="1.8" marker-end="url(#m-pub)"/>
+<rect x="40" y="1546" width="330" height="56" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.4"/>
+<text x="52" y="1568" class="lh" text-anchor="start">Agent admin</text>
+<text x="52" y="1588" class="nt" text-anchor="start">signs in to the gateway UI (:4101, OIDC, agent-admin)</text>
+<rect x="420" y="1546" width="330" height="56" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.4"/>
+<text x="432" y="1568" class="lh" text-anchor="start">Gateway UI</text>
+<text x="432" y="1588" class="nt" text-anchor="start">adds LLM providers / models, MCP servers, policies</text>
+<rect x="800" y="1546" width="330" height="56" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.4"/>
+<text x="812" y="1568" class="lh" text-anchor="start">agw_data overlay</text>
+<text x="812" y="1588" class="nt" text-anchor="start">stored in the gateway DB, survives regeneration</text>
+<rect x="1180" y="1546" width="330" height="56" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.4"/>
+<text x="1192" y="1568" class="lh" text-anchor="start">:4102 services</text>
+<text x="1192" y="1588" class="nt" text-anchor="start">serves the new model / tools to all runtimes</text>
+<path d="M374,1574 L414,1574" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#m-adm)"/>
+<path d="M754,1574 L794,1574" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#m-adm)"/>
+<path d="M1134,1574 L1174,1574" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#m-adm)"/>
+<text x="40" y="1636" class="s" text-anchor="start">Secrets never in the browser: access/refresh tokens stay in the portal&#x27;s encrypted cookie; the Langflow key is added by the gateway; provider keys live only in the gateway.</text>
+<line x1="40" y1="1692" x2="74" y2="1692" stroke="#2563eb" stroke-width="2" marker-end="url(#m-req)"/>
+<text x="82" y="1696" class="s" text-anchor="start">request</text>
+<line x1="165.4" y1="1692" x2="199.4" y2="1692" stroke="#2563eb" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#m-ret)"/>
+<text x="207.4" y="1696" class="s" text-anchor="start">response / stream (dashed)</text>
+<line x1="408.6" y1="1692" x2="442.6" y2="1692" stroke="#7c3aed" stroke-width="2" marker-end="url(#m-id)"/>
+<text x="450.6" y="1696" class="s" text-anchor="start">identity</text>
+<line x1="540.2" y1="1692" x2="574.2" y2="1692" stroke="#d97706" stroke-width="2" marker-end="url(#m-llm)"/>
+<text x="582.2" y="1696" class="s" text-anchor="start">model / tool call</text>
+<line x1="727.6" y1="1692" x2="761.6" y2="1692" stroke="#db2777" stroke-width="2" marker-end="url(#m-hitl)"/>
+<text x="769.6" y="1696" class="s" text-anchor="start">human in the loop</text>
+<line x1="915.0" y1="1692" x2="949.0" y2="1692" stroke="#059669" stroke-width="2" marker-end="url(#m-pub)"/>
+<text x="957.0" y="1696" class="s" text-anchor="start">publish</text>
+<line x1="1040.4" y1="1692" x2="1074.4" y2="1692" stroke="#7c3aed" stroke-width="2" marker-end="url(#m-adm)"/>
+<text x="1082.4" y="1696" class="s" text-anchor="start">admin config</text>
+</svg>

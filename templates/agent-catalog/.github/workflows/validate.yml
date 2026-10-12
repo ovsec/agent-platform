@@ -1,0 +1,41 @@
+# Every release PR (from the agent workflow) and every owners.yaml change: schema, flow and slug ownership.
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/create-github-app-token@v2
+        id: token
+        with:
+          app-id: ${{ vars.AGENT_CATALOG_APP_ID }}
+          private-key: ${{ secrets.AGENT_CATALOG_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: agent-platform
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/agent-platform
+          ref: v1
+          token: ${{ steps.token.outputs.token }}
+          path: .platform
+          sparse-checkout: |
+            schemas
+            scripts/validate-agents.py
+      - uses: astral-sh/setup-uv@v6
+      - name: Validate releases
+        run: |
+          shopt -s nullglob
+          manifests=(stage/*/agent.yaml prod/*/agent.yaml)
+          if (( ${#manifests[@]} == 0 )); then echo "no releases yet"; exit 0; fi
+          uv run .platform/scripts/validate-agents.py --owners owners.yaml "${manifests[@]}"
+
+  # deploy: added with the stage/prod runtime (on push to main: publish changed <env>/<slug> to that environment).

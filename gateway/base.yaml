@@ -1,0 +1,86 @@
+# Hand-edited base of the gateway config. scripts/gen-gateway.py adds one route per agents/*.yaml
+# and writes gateway/config.yaml (generated, do not edit).
+#
+# Agent gateway: the single entry point for agents. Every agent is exposed as
+#   POST /agents/{slug}/run    standard AG-UI (RunAgentInput in, AG-UI SSE events out)
+# whatever runtime is behind it.
+#
+# Auth is generic OAuth2/OIDC: any IdP whose access tokens carry
+#   iss = <issuer>, aud = agent-platform, roles = [..]   (Keycloak locally, e.g. Entra app roles elsewhere)
+# Swap `issuer` / `jwks` (and the ui.oidc client) per environment; nothing else is IdP-specific.
+# ${PORTAL_URL}, ${IDP_URL}, ${GATEWAY_UI_URL}: public URLs, filled in by gen-gateway.py from .env (localhost by
+# default; scripts/share.sh sets them to the Tailscale HTTPS addresses).
+#
+# Langflow agents: Langflow streams AG-UI but takes its own request body, so the route turns
+# RunAgentInput into a /api/v2/workflows call (last user message → input_value, threadId → session_id).
+# Native AG-UI runtimes (Pydantic AI, LangGraph, CrewAI) need no transformation.
+
+config:
+  # Hybrid: this file (generated from git) is the read-only baseline; what agent admins add in the UI
+  # (LLM providers/models, MCP servers, extra routes and policies) is stored as an overlay in the database
+  # and survives regenerating config.yaml. Locally SQLite on a volume; use postgres:// when running replicas.
+  storage:
+    mode: hybrid
+  database:
+    url: sqlite:///data/agentgateway.db
+  # Who/what/which conversation for the UI's Logs and Analytics pages (agentgateway.user / .group / session).
+  # User: the access token when there is one, else the end user a runtime forwards on its LLM/MCP calls.
+  standardAttributes:
+    user: 'default(jwt.preferred_username, default(request.headers["x-end-user-id"], "anonymous"))'
+    group: 'default(request.headers["x-agent-slug"], default(apiKey.client, "unknown-agent"))'
+  # Audit: who called which agent. Fields come from the validated access token (absent on calls without one).
+  # Requests are also stored in the database above, for the UI and for later export.
+  logging:
+    fields:
+      add:
+        user.id: jwt.sub
+        user.name: jwt.preferred_username
+        user.email: jwt.email
+        user.roles: jwt.roles
+        agent.thread: request.headers["x-agui-thread-id"]   # set by the portal; AG-UI threadId = Langflow session_id
+    database:
+      url: sqlite:///data/agentgateway.db
+
+gateways:
+  default:
+    port: 4100
+    jwtAuth:
+      mode: strict
+      issuer: ${IDP_URL}/realms/agents
+      audiences: [agent-platform]
+      jwks:
+        url: http://keycloak:8080/realms/agents/protocol/openid-connect/certs
+    cors:
+      allowOrigins: ["${PORTAL_URL}"]
+      allowHeaders: [authorization, content-type, accept]
+      allowMethods: [GET, POST, OPTIONS]
+      allowCredentials: true
+
+  # Admin UI, on its own port so the agent API above keeps its strict bearer-JWT check.
+  admin-ui:
+    port: 4101
+
+  # Internal traffic from agent runtimes (Langflow, Pydantic AI, ...) to shared services: attach LLM
+  # (/v1/chat/completions, /v1/models) and MCP (/mcp) to this gateway in the UI. Reachable on the Docker
+  # network as agentgateway:4102; published on the host only for local testing.
+  # Callers need a gateway API key (Authorization: Bearer <key>); gen-gateway.py adds the accepted key hashes.
+  services:
+    port: 4102
+
+# agentgateway has no user accounts: the UI is protected by a browser OIDC login (same IdP as the portal)
+# plus a role check. Locally: http://localhost:4101/ui, user `admin` (role agent-admin).
+# Note: gateway/config.yaml is generated, so treat the UI as read-only (inspect routes, policies, traffic).
+ui:
+  gateways: [admin-ui]
+  policies:
+    oidc:
+      issuer: ${IDP_URL}/realms/agents
+      # Discovery over the Docker network: browser endpoints stay on localhost:8180, token/JWKS calls use keycloak:8080
+      discovery:
+        url: http://keycloak:8080/realms/agents/.well-known/openid-configuration
+      clientId: agent-gateway-ui
+      clientSecret: dev-only-agent-gateway-ui-secret   # local realm only; inject from a secret elsewhere
+      redirectURI: ${GATEWAY_UI_URL}/oauth/callback
+    authorization:
+      rules:
+      - allow: '"agent-admin" in jwt.roles'

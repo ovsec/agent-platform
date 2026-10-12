@@ -1,0 +1,2 @@
+# Platform-wide settings shared by the gateway route generator (scripts/gen-gateway.py) and the portal.
+admin_roles: [agent-admin]   # may use every agent, whatever its access.roles

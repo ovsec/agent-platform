@@ -1,0 +1,3 @@
+# Which repo may release which agent: slug → org/repo. Changes need the platform team (CODEOWNERS).
+# scripts/github-setup.sh new-agent-repo adds entries.
+# invoice-monitor: ORG/my-agents

@@ -1,0 +1,58 @@
+{
+  "name": "Agent Platform",
+  "productName": "Agent Portal",
+  "fonts": {
+    "sans": "var(--font-geist-sans), system-ui, sans-serif",
+    "mono": "var(--font-geist-mono), ui-monospace, monospace"
+  },
+  "radius": { "card": "0.75rem", "control": "0.5rem", "bubble": "1rem" },
+  "colors": {
+    "light": {
+      "background": "#ffffff",
+      "foreground": "#171717",
+      "surface": "#ffffff",
+      "muted": "#f4f4f5",
+      "muted-foreground": "#71717a",
+      "border": "#e4e4e7",
+      "primary": "#2563eb",
+      "primary-hover": "#1d4ed8",
+      "primary-foreground": "#ffffff",
+      "accent": "#1d4ed8",
+      "accent-surface": "#dbeafe",
+      "brand": "#171717",
+      "header-background": "#ffffff",
+      "header-foreground": "#171717",
+      "user-bubble": "#f4f4f5",
+      "user-bubble-foreground": "#171717",
+      "focus-ring": "rgba(37, 99, 235, 0.4)",
+      "danger": "#b91c1c",
+      "danger-surface": "#fef2f2"
+    },
+    "dark": {
+      "background": "#0a0a0a",
+      "foreground": "#ededed",
+      "surface": "#111113",
+      "muted": "#27272a",
+      "muted-foreground": "#a1a1aa",
+      "border": "#3f3f46",
+      "primary": "#3b82f6",
+      "primary-hover": "#60a5fa",
+      "primary-foreground": "#ffffff",
+      "accent": "#93c5fd",
+      "accent-surface": "#172554",
+      "brand": "#ededed",
+      "header-background": "#0a0a0a",
+      "header-foreground": "#ededed",
+      "user-bubble": "#27272a",
+      "user-bubble-foreground": "#ededed",
+      "focus-ring": "rgba(96, 165, 250, 0.45)",
+      "danger": "#fca5a5",
+      "danger-surface": "#450a0a"
+    }
+  },
+  "copy": {
+    "signedOutTitle": "Agent Portal",
+    "signedOutBody": "Sign in to see the agents available to you.",
+    "composerPlaceholder": "Message the agent…"
+  }
+}

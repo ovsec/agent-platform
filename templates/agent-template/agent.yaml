@@ -1,0 +1,13 @@
+# Agent manifest v1: schemas/agent.schema.json in agent-platform. Validated on every PR.
+slug: my-agent                 # lowercase-dashes; becomes /agents/my-agent/run. Must be registered for this repo.
+name: My Agent
+description: One sentence users see in the portal.
+owner_team: my-team
+tags: []
+runtime: langflow              # langflow: flow.json below · agui: Dockerfile + agui.host/path (code agents)
+langflow:
+  flow_id: 00000000-0000-4000-8000-000000000000   # the "id" in flow.json
+access:
+  roles: [agent-user]          # Entra app roles allowed to use the agent; agent-admin always can
+starter_prompts:
+  - What can you do?

@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 72 1600 836" role="img" aria-label="Agent platform components: end users, admins and developers reach agents through the portal and identity provider, every call passes the agentgateway front door to Langflow or planned code runtimes, which use LLMs and enterprise systems; developers build in Langflow Builder and publish from git without restarts." style="color-scheme:light dark;--dg-ink:var(--text-primary,light-dark(#18181b,#f4f4f8));--dg-muted:var(--text-secondary,light-dark(#52525b,#a1a1b5));--dg-surface:var(--surface-raised,light-dark(#ffffff,#121214));--dg-line:color-mix(in srgb,var(--dg-ink) 18%,var(--dg-surface));--dg-line-strong:color-mix(in srgb,var(--dg-ink) 50%,var(--dg-surface));width:100%;height:auto;display:block;font-family:var(--font-sans,system-ui,-apple-system,'Segoe UI',sans-serif)">
+<title>Agent platform: components and their purpose</title><defs>
+<marker id="m1l" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="var(--dg-line-strong)" stroke-width="1.5"/></marker>
+<marker id="m1a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="light-dark(#e11d48,#fb7185)" stroke-width="1.5"/></marker>
+</defs>
+<text x="24" y="94" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">PEOPLE</text>
+<line x1="24" y1="102" x2="300" y2="102" stroke="var(--dg-line-strong)"/>
+<text x="316" y="94" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">EXPERIENCE &amp; IDENTITY</text>
+<line x1="316" y1="102" x2="646" y2="102" stroke="var(--dg-line-strong)"/>
+<text x="662" y="94" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">FRONT DOOR</text>
+<line x1="662" y1="102" x2="978" y2="102" stroke="var(--dg-line-strong)"/>
+<text x="994" y="94" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">AGENT RUNTIMES</text>
+<line x1="994" y1="102" x2="1284" y2="102" stroke="var(--dg-line-strong)"/>
+<text x="1300" y="94" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">WHAT AGENTS USE</text>
+<line x1="1300" y1="102" x2="1576" y2="102" stroke="var(--dg-line-strong)"/>
+<text x="24" y="564" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">BUILD &amp; PUBLISH</text>
+<line x1="24" y1="572" x2="994" y2="572" stroke="var(--dg-line-strong)"/>
+<text x="1010" y="564" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--dg-muted)" font-family="inherit" letter-spacing="0.12em">STATE &amp; INSIGHT</text>
+<line x1="1010" y1="572" x2="1576" y2="572" stroke="var(--dg-line-strong)"/>
+<rect x="40" y="110" width="244" height="128" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="56" y="138" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">End users</text>
+<text x="56" y="160" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Find the right agent, ask</text>
+<text x="56" y="178" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">questions, approve or reject</text>
+<text x="56" y="196" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">actions the agent proposes.</text>
+<text x="56" y="224" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">browser</text>
+<rect x="40" y="254" width="244" height="128" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="56" y="282" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Agent admins</text>
+<text x="56" y="304" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Govern models, tools and</text>
+<text x="56" y="322" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">access; see who used what.</text>
+<text x="56" y="368" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">role agent-admin</text>
+<rect x="40" y="398" width="244" height="120" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="56" y="426" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Agent developers</text>
+<text x="56" y="448" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Build and test agents, then</text>
+<text x="56" y="466" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">publish them to the catalog.</text>
+<text x="56" y="504" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Langflow · code (planned)</text>
+<rect x="332" y="110" width="298" height="214" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="348" y="138" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Portal</text>
+<text x="348" y="160" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">One place for every agent:</text>
+<text x="348" y="178" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">sign in, search the catalog,</text>
+<text x="348" y="196" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">chat with streaming answers,</text>
+<text x="348" y="214" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">tool results and approval cards.</text>
+<text x="348" y="232" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Same experience whatever runtime</text>
+<text x="348" y="250" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">is behind an agent.</text>
+<text x="348" y="310" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Next.js · assistant-ui · AG-UI · branding</text>
+<rect x="332" y="340" width="298" height="178" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="348" y="368" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Identity provider (OIDC)</text>
+<text x="348" y="390" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Who you are and which roles</text>
+<text x="348" y="408" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">you have. One login for the</text>
+<text x="348" y="426" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">portal and the gateway UI;</text>
+<text x="348" y="444" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">any OIDC provider.</text>
+<text x="348" y="504" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Keycloak locally · Entra ID / Okta</text>
+<rect x="678" y="110" width="284" height="408" rx="3" fill="color-mix(in srgb,light-dark(#e11d48,#fb7185) 10%,var(--dg-surface))" stroke="light-dark(#e11d48,#fb7185)" stroke-width="1.75"/>
+<text x="694" y="138" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">agentgateway</text>
+<text x="694" y="160" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">The single front door.</text>
+<text x="694" y="178" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit"></text>
+<text x="694" y="196" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">• checks identity and roles</text>
+<text x="694" y="214" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">  for every agent call</text>
+<text x="694" y="232" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">• routes /agents/{slug}/run to</text>
+<text x="694" y="250" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">  the right runtime</text>
+<text x="694" y="268" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">• governs model and tool use:</text>
+<text x="694" y="286" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">  keys, guardrails, budgets</text>
+<text x="694" y="304" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">• records who called which agent</text>
+<text x="694" y="322" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">  and which model (audit, analytics)</text>
+<text x="694" y="340" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">• admin UI for models and MCP</text>
+<text x="694" y="504" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">agent API · admin UI · LLM/MCP services</text>
+<rect x="1010" y="110" width="258" height="128" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="1026" y="138" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Langflow adapter</text>
+<text x="1026" y="160" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Lets Langflow agents speak</text>
+<text x="1026" y="178" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">standard AG-UI, incl. pausing</text>
+<text x="1026" y="196" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">for a human and resuming.</text>
+<text x="1026" y="224" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">FastAPI · stateless</text>
+<rect x="1010" y="254" width="258" height="128" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="1026" y="282" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Langflow runtime</text>
+<text x="1026" y="304" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Runs the published visual</text>
+<text x="1026" y="322" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">agents, with per-user memory</text>
+<text x="1026" y="340" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">and human-in-the-loop.</text>
+<text x="1026" y="368" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Langflow 1.12 · headless</text>
+<rect x="1010" y="398" width="258" height="120" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="1252" y="424" text-anchor="end" font-size="10" font-weight="500" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" letter-spacing="0.08em">PLANNED</text>
+<text x="1026" y="426" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-muted)" font-family="inherit">Code runtimes</text>
+<text x="1026" y="448" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Run code-first agents behind</text>
+<text x="1026" y="466" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">the same front door.</text>
+<text x="1026" y="504" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Pydantic AI · LangGraph · CrewAI</text>
+<rect x="1316" y="110" width="244" height="128" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="1332" y="138" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">LLM providers</text>
+<text x="1332" y="160" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">The models agents think with,</text>
+<text x="1332" y="178" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">reached only through the</text>
+<text x="1332" y="196" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">gateway (keys stay there).</text>
+<text x="1332" y="224" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Ollama · cloud LLMs</text>
+<rect x="1316" y="254" width="244" height="128" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="1332" y="282" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Enterprise systems</text>
+<text x="1332" y="304" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">The data and actions agents</text>
+<text x="1332" y="322" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">work on, through tools.</text>
+<text x="1332" y="368" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Business system · APIs</text>
+<rect x="1316" y="398" width="244" height="120" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="1544" y="424" text-anchor="end" font-size="10" font-weight="500" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" letter-spacing="0.08em">PLANNED</text>
+<text x="1332" y="426" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-muted)" font-family="inherit">Shared tools (MCP)</text>
+<text x="1332" y="448" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Tools every runtime can use,</text>
+<text x="1332" y="466" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">governed by the gateway.</text>
+<text x="1332" y="504" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">MCP servers via gateway</text>
+<rect x="40" y="580" width="296" height="194" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="56" y="608" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Langflow Builder</text>
+<text x="56" y="630" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Where developers design and</text>
+<text x="56" y="648" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">test agents visually: prompts,</text>
+<text x="56" y="666" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">models, tools, human approval</text>
+<text x="56" y="684" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">steps, in a playground.</text>
+<text x="56" y="760" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">shared visual editor</text>
+<rect x="356" y="580" width="296" height="194" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="372" y="608" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Publish (publish.py)</text>
+<text x="372" y="630" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Turns a tested flow into a live</text>
+<text x="372" y="648" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">catalog agent in one step, with</text>
+<text x="372" y="666" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">no restarts: routes models via</text>
+<text x="372" y="684" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">the gateway, updates runtime,</text>
+<text x="372" y="702" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">catalog and gateway routes.</text>
+<text x="372" y="760" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">later: run by CI on PR merge</text>
+<rect x="672" y="580" width="306" height="194" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="688" y="608" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Git repository</text>
+<text x="688" y="630" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Source of truth: flows, catalog</text>
+<text x="688" y="648" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">entries (agents/*.yaml), gateway</text>
+<text x="688" y="666" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">base config, components, portal,</text>
+<text x="688" y="684" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">adapter. Reviewed by PR.</text>
+<text x="688" y="760" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">flows/ · agents/ · gateway/ · apps/</text>
+<rect x="1026" y="580" width="260" height="194" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1"/>
+<text x="1042" y="608" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-ink)" font-family="inherit">Databases &amp; volumes</text>
+<text x="1042" y="630" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Keep state: identities, flows,</text>
+<text x="1042" y="648" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">run jobs and memory, gateway</text>
+<text x="1042" y="666" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">UI settings and request logs,</text>
+<text x="1042" y="684" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">log-search index.</text>
+<text x="1042" y="760" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Postgres · SQLite · DuckDB/Chroma</text>
+<rect x="1302" y="580" width="258" height="194" rx="3" fill="none" stroke="var(--dg-line-strong)" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="1544" y="606" text-anchor="end" font-size="10" font-weight="500" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" letter-spacing="0.08em">PLANNED</text>
+<text x="1318" y="608" text-anchor="start" font-size="16" font-weight="600" fill="var(--dg-muted)" font-family="inherit">Observability</text>
+<text x="1318" y="630" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Searchable logs, metrics,</text>
+<text x="1318" y="648" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">traces and audit dashboards:</text>
+<text x="1318" y="666" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">usage, errors, latency, cost</text>
+<text x="1318" y="684" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">per agent and user.</text>
+<text x="1318" y="760" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">Alloy · Loki · Grafana (planned)</text>
+<path d="M284,174 L330,174" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M630,217 L676,217" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<text x="653" y="211" text-anchor="middle" font-size="10.5" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" paint-order="stroke" stroke="var(--dg-surface)" stroke-width="4" stroke-linejoin="round">AG-UI</text>
+<path d="M481,340 L481,324" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M630,429 L676,429" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<text x="653" y="423" text-anchor="middle" font-size="10.5" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" paint-order="stroke" stroke="var(--dg-surface)" stroke-width="4" stroke-linejoin="round">tokens</text>
+<path d="M284,318 L310,318 L310,538 L820,538 L820,520" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M962,174 L1010,174" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<text x="986" y="168" text-anchor="middle" font-size="10.5" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" paint-order="stroke" stroke="var(--dg-surface)" stroke-width="4" stroke-linejoin="round">/run</text>
+<path d="M962,458 L1010,458" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" stroke-dasharray="5 4" marker-end="url(#m1l)"/>
+<path d="M1139,238 L1139,254" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M1268,300 L1292,300 L1292,174 L1316,174" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M1268,336 L1316,336" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M1268,458 L1316,458" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" stroke-dasharray="5 4" marker-end="url(#m1l)"/>
+<path d="M162,518 L188,580" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M336,677 L356,677" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M652,677 L672,677" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<path d="M504,580 L504,546 L988,546 L988,318 L1010,318" stroke="var(--dg-line-strong)" stroke-width="1.2" fill="none" marker-end="url(#m1l)"/>
+<text x="504" y="557" text-anchor="middle" font-size="10.5" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)" paint-order="stroke" stroke="var(--dg-surface)" stroke-width="4" stroke-linejoin="round">publish</text>
+<line x1="40" y1="830" x2="74" y2="830" stroke="var(--dg-line-strong)" stroke-width="1.2" marker-end="url(#m1l)"/>
+<text x="84" y="834" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">call / flow</text>
+<line x1="181" y1="830" x2="215" y2="830" stroke="var(--dg-line-strong)" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#m1l)"/>
+<text x="225" y="834" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">planned</text>
+<rect x="294" y="823" width="22" height="14" rx="3" fill="color-mix(in srgb,light-dark(#e11d48,#fb7185) 10%,var(--dg-surface))" stroke="light-dark(#e11d48,#fb7185)" stroke-width="1.75"/>
+<text x="326" y="834" text-anchor="start" font-size="11" font-weight="400" fill="var(--dg-muted)" font-family="var(--font-mono,ui-monospace,SFMono-Regular,Menlo,monospace)">the one door every agent, model and tool call passes</text>
+<text x="40" y="870" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">Principles: one front door (agentgateway) for agents, models and tools · standard AG-UI between portal and every runtime · generic OIDC ·</text>
+<text x="40" y="888" text-anchor="start" font-size="13" font-weight="400" fill="var(--dg-muted)" font-family="inherit">git as the source of truth and publish without restarts · provider keys and user tokens never reach the browser or the flows.</text>
+</svg>

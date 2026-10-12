@@ -1,0 +1,52 @@
+%% Agent platform · data flow (picture: data-flow.svg)
+sequenceDiagram
+  autonumber
+  participant BR as Browser
+  participant PO as Portal :3100
+  participant IDP as OIDC IdP
+  participant GW as agentgateway :4100
+  participant AD as Langflow adapter
+  participant RT as Langflow runtime
+  participant SV as agentgateway :4102
+  participant EX as Ollama · business APIs
+
+  rect rgba(124, 58, 237, 0.06)
+    Note over BR,IDP: A · Sign-in (generic OAuth2 / OIDC code flow with PKCE)
+    BR->>PO: Sign in
+    BR->>IDP: login page (public issuer, e.g. localhost:8180)
+    IDP-->>PO: code → token exchange (server side, OIDC_INTERNAL_ISSUER)
+    Note over PO: access + refresh token in encrypted cookie
+  end
+
+  rect rgba(37, 99, 235, 0.05)
+    Note over BR,EX: B · Agent run (standard AG-UI end to end)
+    BR->>PO: POST /api/agents/{slug}/run · RunAgentInput {threadId, messages}
+    PO->>GW: + Bearer access token, x-agui-thread-id
+    Note over GW: validate JWT (JWKS from IdP) · CEL roles · audit log (user, agent, thread)
+    GW->>AD: POST /run · x-langflow-flow-id, x-end-user-id, x-api-key (no user token)
+    Note over AD: flow can pause? no → stream mode · yes → background job + events
+    AD->>RT: POST /api/v2/workflows · session_id = threadId
+    Note over RT: memory scoped user::thread · Agent plans
+    RT->>SV: POST /v1/chat/completions · runtime key + x-end-user-id, x-agent-slug, x-agui-thread-id
+    SV->>EX: ollama/qwen3:8b (Logs/Analytics: user, agent, tokens)
+    RT->>EX: tool call (e.g. make_api_request → business API)
+    RT-->>AD: AG-UI SSE: TEXT_MESSAGE_*, TOOL_CALL_*, RUN_FINISHED
+    AD-->>BR: same events (client ids, langflow.* dropped) via gateway and portal
+  end
+
+  rect rgba(219, 39, 119, 0.05)
+    Note over BR,RT: C · Human in the loop (Langflow pause/resume ↔ standard AG-UI interrupts)
+    Note over RT: Human Input node, or a tool with approval_actions → pause
+    RT-->>AD: CUSTOM langflow.human_input_required (request_id, options, prompt)
+    AD-->>BR: RUN_FINISHED {outcome: interrupt} · id = job + request + event id
+    BR->>AD: new run with resume [{interruptId, status, payload {action_id}}] (via portal + gateway)
+    AD->>RT: POST /{job}/resume + GET /{job}/events (Last-Event-ID)
+    RT-->>BR: remaining events → portal (cancelled → /stop · other user → job not found)
+  end
+
+  rect rgba(5, 150, 105, 0.05)
+    Note over BR,EX: D · Control plane (no restarts)
+    Note over AD,RT: publish.py: export flow → add agentgateway Model → flows/ + agents/ → upsert runtime by API
+    Note over GW: gen-gateway.py → config.yaml → hot reload (route live in seconds)
+    Note over SV: admin UI (:4101) → models / MCP in the gateway DB → served on :4102
+  end

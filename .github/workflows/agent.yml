@@ -1,0 +1,169 @@
+# Reusable workflow for agent repos: agent teams call it and install nothing (templates/agent-template).
+#
+#   pull_request       → validate
+#   push to main       → validate → release to stage
+#   release published  → validate → release to prod (GitHub environment "prod": the team approves)
+#   workflow_dispatch  → release the selected ref to the chosen environment (rollback: pick an older tag)
+#
+# Agent folders: agent.yaml (+ flow.json) at the repo root for a single agent, or agents/<name>/ for several.
+# A code agent (runtime: agui) has a Dockerfile in its folder; its image is built and pushed to GHCR.
+#
+# A release is one PR in agent-catalog with every agent of the repo (<env>/<slug>/: agent.yaml, flow.json,
+# release.yaml) that auto-merges once the catalog's checks pass, including slug ownership (owners.yaml).
+# The platform deploys from agent-catalog.
+#
+# Org setup, once (scripts/github-setup.sh): GitHub App with contents + pull-requests write on agent-catalog
+# and contents read on agent-platform; org variable AGENT_CATALOG_APP_ID and secret AGENT_CATALOG_APP_KEY.
+name: agent
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: workflow_dispatch target (stage or prod); ignored for other events
+        type: string
+        default: ''
+      platform-ref:
+        description: agent-platform ref with the schema and validator; keep it equal to the @ref the caller uses
+        type: string
+        default: v1
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      environment: ${{ steps.target.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/create-github-app-token@v2
+        id: token
+        with:
+          app-id: ${{ vars.AGENT_CATALOG_APP_ID }}
+          private-key: ${{ secrets.AGENT_CATALOG_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: agent-platform
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/agent-platform
+          ref: ${{ inputs.platform-ref }}
+          token: ${{ steps.token.outputs.token }}
+          path: .platform
+          sparse-checkout: |
+            schemas
+            scripts/validate-agents.py
+      - uses: astral-sh/setup-uv@v6
+      - name: Validate agents
+        run: |
+          shopt -s nullglob
+          if [[ -f agent.yaml ]]; then manifests=(agent.yaml); else manifests=(agents/*/agent.yaml); fi
+          if (( ${#manifests[@]} == 0 )); then echo "::error::no agent.yaml or agents/*/agent.yaml"; exit 1; fi
+          uv run .platform/scripts/validate-agents.py "${manifests[@]}"
+          slugs=$(for m in "${manifests[@]}"; do yq '.slug' "$m"; done | sort)
+          if [[ -n $(uniq -d <<< "$slugs") ]]; then echo "::error::duplicate slugs: $(uniq -d <<< "$slugs")"; exit 1; fi
+      - id: target
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          DEFAULT_BRANCH: refs/heads/${{ github.event.repository.default_branch }}
+          REQUESTED: ${{ inputs.environment }}
+        run: |
+          case "$EVENT" in
+            push) if [[ $REF == "$DEFAULT_BRANCH" ]]; then env=stage; fi ;;
+            release) env=prod ;;
+            workflow_dispatch)
+              [[ $REQUESTED == stage || $REQUESTED == prod ]] || { echo "::error::environment must be stage or prod"; exit 1; }
+              env=$REQUESTED ;;
+          esac
+          echo "environment=${env:-}" >> "$GITHUB_OUTPUT"
+          echo "target: ${env:-none (validate only)}"
+
+  release:
+    needs: validate
+    if: needs.validate.outputs.environment != ''
+    runs-on: ubuntu-latest
+    environment: ${{ needs.validate.outputs.environment }}   # prod: required reviewers = the agent team
+    concurrency: release-${{ needs.validate.outputs.environment }}-${{ github.repository }}
+    permissions:
+      contents: read
+      packages: write
+    env:
+      ENVIRONMENT: ${{ needs.validate.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/login-action@v3
+        if: hashFiles('Dockerfile', 'agents/*/Dockerfile') != ''
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/create-github-app-token@v2
+        id: token
+        with:
+          app-id: ${{ vars.AGENT_CATALOG_APP_ID }}
+          private-key: ${{ secrets.AGENT_CATALOG_APP_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: agent-catalog
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/agent-catalog
+          token: ${{ steps.token.outputs.token }}
+          path: .catalog
+
+      - name: Build images and open the release PR in agent-catalog
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          shopt -s nullglob
+          dirs=(agents/*/)
+          if [[ -f agent.yaml ]]; then dirs=(.); fi
+          released=()
+          for dir in "${dirs[@]}"; do
+            dir=${dir%/}
+            slug=$(yq '.slug' "$dir/agent.yaml")
+            image=""
+            if [[ -f $dir/Dockerfile ]]; then
+              image="ghcr.io/$OWNER/agent-$slug:$GITHUB_SHA"
+              docker build -t "$image" "$dir"
+              docker push "$image"
+            fi
+            out=".catalog/$ENVIRONMENT/$slug"
+            rm -rf "$out" && mkdir -p "$out"
+            cp "$dir/agent.yaml" "$out/"
+            if [[ -f $dir/flow.json ]]; then cp "$dir/flow.json" "$out/"; fi
+            {
+              echo "source_repo: $GITHUB_REPOSITORY"
+              echo "source_path: $dir"
+              echo "commit: $GITHUB_SHA"
+              echo "ref: $GITHUB_REF"
+              echo "released_by: $GITHUB_ACTOR"
+              echo "released_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              echo "run: $RUN_URL"
+              if [[ -n $image ]]; then echo "image: $image"; fi
+            } > "$out/release.yaml"
+            released+=("$slug")
+          done
+
+          cd .catalog
+          branch="release/$ENVIRONMENT/${GITHUB_REPOSITORY#*/}"
+          title="$ENVIRONMENT: ${released[*]} @ ${GITHUB_SHA::7} ($GITHUB_REPOSITORY)"
+          git config user.name "agent-catalog-bot"
+          git config user.email "agent-catalog-bot@users.noreply.github.com"
+          git checkout -B "$branch"
+          for slug in "${released[@]}"; do git add -A "$ENVIRONMENT/$slug"; done
+          git commit -m "$title" -m "Released by $GITHUB_ACTOR from $GITHUB_REF: $RUN_URL"
+          git push --force origin "$branch"
+          if ! gh pr view "$branch" --json number >/dev/null 2>&1; then
+            gh pr create --head "$branch" --title "$title" --body "Released by @$GITHUB_ACTOR from $GITHUB_REPOSITORY@$GITHUB_SHA ($GITHUB_REF). Run: $RUN_URL"
+          else
+            gh pr edit "$branch" --title "$title"
+          fi
+          gh pr merge "$branch" --auto --squash
+          {
+            echo "### Released to $ENVIRONMENT: ${released[*]}"
+            echo "Catalog PR: $(gh pr view "$branch" --json url --jq .url) (auto-merges when its checks pass)"
+          } >> "$GITHUB_STEP_SUMMARY"

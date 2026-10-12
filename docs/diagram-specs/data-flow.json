@@ -1,0 +1,710 @@
+{
+ "boxes": [
+  {
+   "id": "lane-br",
+   "x": 7,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "Browser",
+    "end user"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-po",
+   "x": 207,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "Portal",
+    "Next.js :3100"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-idp",
+   "x": 407,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "OIDC IdP",
+    "Keycloak / Entra"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-gw",
+   "x": 607,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "agentgateway",
+    ":4100 agent API"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-ad",
+   "x": 807,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "Langflow adapter",
+    "AG-UI \u2194 Workflow API"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-rt",
+   "x": 1007,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "Langflow runtime",
+    "flows, memory, HITL"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-sv",
+   "x": 1207,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "agentgateway",
+    ":4102 LLM / MCP"
+   ],
+   "center": true
+  },
+  {
+   "id": "lane-ex",
+   "x": 1407,
+   "y": 84,
+   "w": 176,
+   "h": 52,
+   "kind": "lane",
+   "lines": [
+    "Ollama \u00b7 business APIs",
+    "models \u00b7 tools"
+   ],
+   "center": true
+  },
+  {
+   "id": "note8",
+   "x": 570.0,
+   "y": 482,
+   "w": 250,
+   "h": 59,
+   "kind": "note-req",
+   "lines": [
+    "validate JWT (iss, aud, exp; JWKS",
+    "from IdP) \u00b7 CEL: roles \u2229 agent roles",
+    "audit log: user, agent, thread"
+   ]
+  },
+  {
+   "id": "note9",
+   "x": 770.0,
+   "y": 597,
+   "w": 250,
+   "h": 59,
+   "kind": "note-req",
+   "lines": [
+    "flow can pause? (cached 30 s)",
+    "no \u2192 mode stream (tokens)",
+    "yes \u2192 mode background + events"
+   ]
+  },
+  {
+   "id": "note10",
+   "x": 970.0,
+   "y": 712,
+   "w": 250,
+   "h": 44,
+   "kind": "note-req",
+   "lines": [
+    "session = <user>::<thread>",
+    "Agent: plan, call model/tools"
+   ]
+  },
+  {
+   "id": "note11",
+   "x": 970.0,
+   "y": 1066,
+   "w": 250,
+   "h": 44,
+   "kind": "note-hitl",
+   "lines": [
+    "Human Input node, or a tool",
+    "with approval_actions \u2192 pause"
+   ]
+  },
+  {
+   "id": "pub-40",
+   "x": 40,
+   "y": 1456,
+   "w": 250,
+   "h": 56,
+   "kind": "dev",
+   "lines": [
+    "Developer",
+    "builds a flow in the Langflow Builder (:7870)"
+   ]
+  },
+  {
+   "id": "pub-330",
+   "x": 330,
+   "y": 1456,
+   "w": 250,
+   "h": 56,
+   "kind": "dev",
+   "lines": [
+    "publish.py",
+    "export \u00b7 gateway model \u00b7 flows/ + agents/"
+   ]
+  },
+  {
+   "id": "pub-620",
+   "x": 620,
+   "y": 1456,
+   "w": 250,
+   "h": 56,
+   "kind": "dev",
+   "lines": [
+    "Langflow runtime",
+    "upsert flow by API (+ Builder)"
+   ]
+  },
+  {
+   "id": "pub-910",
+   "x": 910,
+   "y": 1456,
+   "w": 250,
+   "h": 56,
+   "kind": "dev",
+   "lines": [
+    "gen-gateway.py",
+    "config.yaml \u2190 base + agents/ + platform.yaml"
+   ]
+  },
+  {
+   "id": "pub-1200",
+   "x": 1200,
+   "y": 1456,
+   "w": 250,
+   "h": 56,
+   "kind": "dev",
+   "lines": [
+    "agentgateway",
+    "watches config.yaml \u2192 route live in seconds"
+   ]
+  },
+  {
+   "id": "adm-40",
+   "x": 40,
+   "y": 1546,
+   "w": 330,
+   "h": 56,
+   "kind": "idp",
+   "lines": [
+    "Agent admin",
+    "signs in to the gateway UI (:4101, OIDC, agent-admin)"
+   ]
+  },
+  {
+   "id": "adm-420",
+   "x": 420,
+   "y": 1546,
+   "w": 330,
+   "h": 56,
+   "kind": "idp",
+   "lines": [
+    "Gateway UI",
+    "adds LLM providers / models, MCP servers, policies"
+   ]
+  },
+  {
+   "id": "adm-800",
+   "x": 800,
+   "y": 1546,
+   "w": 330,
+   "h": 56,
+   "kind": "idp",
+   "lines": [
+    "agw_data overlay",
+    "stored in the gateway DB, survives regeneration"
+   ]
+  },
+  {
+   "id": "adm-1180",
+   "x": 1180,
+   "y": 1546,
+   "w": 330,
+   "h": 56,
+   "kind": "idp",
+   "lines": [
+    ":4102 services",
+    "serves the new model / tools to all runtimes"
+   ]
+  }
+ ],
+ "zones": [
+  {
+   "x": 20,
+   "y": 150,
+   "w": 1560,
+   "h": 180,
+   "label": "A \u00b7 SIGN-IN \u00b7 generic OAuth2 / OIDC code flow with PKCE"
+  },
+  {
+   "x": 20,
+   "y": 346,
+   "w": 1560,
+   "h": 660,
+   "label": "B \u00b7 AGENT RUN \u00b7 standard AG-UI end to end; Langflow translated by the adapter"
+  },
+  {
+   "x": 20,
+   "y": 1022,
+   "w": 1560,
+   "h": 354,
+   "label": "C \u00b7 HUMAN IN THE LOOP \u00b7 Langflow pause/resume mapped to standard AG-UI interrupts (stateless adapter)"
+  },
+  {
+   "x": 20,
+   "y": 1392,
+   "w": 1560,
+   "h": 270,
+   "label": "D \u00b7 CONTROL PLANE \u00b7 no restarts: Langflow API upserts, gateway hot-reloads config.yaml, UI overlay in the gateway DB"
+  }
+ ],
+ "arrows": [
+  {
+   "x1": 95,
+   "y1": 212,
+   "x2": 295,
+   "y2": 212,
+   "color": "v",
+   "dashed": false
+  },
+  {
+   "x1": 95,
+   "y1": 252,
+   "x2": 495,
+   "y2": 252,
+   "color": "v",
+   "dashed": false
+  },
+  {
+   "x1": 495,
+   "y1": 300,
+   "x2": 295,
+   "y2": 300,
+   "color": "v",
+   "dashed": true
+  },
+  {
+   "x1": 95,
+   "y1": 410,
+   "x2": 295,
+   "y2": 410,
+   "color": "b",
+   "dashed": false
+  },
+  {
+   "x1": 295,
+   "y1": 458,
+   "x2": 695,
+   "y2": 458,
+   "color": "b",
+   "dashed": false
+  },
+  {
+   "x1": 695,
+   "y1": 573,
+   "x2": 895,
+   "y2": 573,
+   "color": "b",
+   "dashed": false
+  },
+  {
+   "x1": 895,
+   "y1": 688,
+   "x2": 1095,
+   "y2": 688,
+   "color": "b",
+   "dashed": false
+  },
+  {
+   "x1": 1095,
+   "y1": 788,
+   "x2": 1295,
+   "y2": 788,
+   "color": "o",
+   "dashed": false
+  },
+  {
+   "x1": 1295,
+   "y1": 832,
+   "x2": 1495,
+   "y2": 832,
+   "color": "o",
+   "dashed": false
+  },
+  {
+   "x1": 1095,
+   "y1": 876,
+   "x2": 1495,
+   "y2": 876,
+   "color": "o",
+   "dashed": false
+  },
+  {
+   "x1": 1095,
+   "y1": 926,
+   "x2": 895,
+   "y2": 926,
+   "color": "b",
+   "dashed": true
+  },
+  {
+   "x1": 895,
+   "y1": 976,
+   "x2": 95,
+   "y2": 976,
+   "color": "b",
+   "dashed": true
+  },
+  {
+   "x1": 1095,
+   "y1": 1144,
+   "x2": 895,
+   "y2": 1144,
+   "color": "r",
+   "dashed": true
+  },
+  {
+   "x1": 895,
+   "y1": 1192,
+   "x2": 95,
+   "y2": 1192,
+   "color": "r",
+   "dashed": true
+  },
+  {
+   "x1": 95,
+   "y1": 1246,
+   "x2": 895,
+   "y2": 1246,
+   "color": "r",
+   "dashed": false
+  },
+  {
+   "x1": 895,
+   "y1": 1296,
+   "x2": 1095,
+   "y2": 1296,
+   "color": "r",
+   "dashed": false
+  },
+  {
+   "x1": 1095,
+   "y1": 1346,
+   "x2": 95,
+   "y2": 1346,
+   "color": "b",
+   "dashed": true
+  },
+  {
+   "from": "pub-40",
+   "to": "pub-330",
+   "color": "g"
+  },
+  {
+   "from": "pub-330",
+   "to": "pub-620",
+   "color": "g"
+  },
+  {
+   "from": "pub-620",
+   "to": "pub-910",
+   "color": "g"
+  },
+  {
+   "from": "pub-910",
+   "to": "pub-1200",
+   "color": "g"
+  },
+  {
+   "from": "adm-40",
+   "to": "adm-420",
+   "color": "v"
+  },
+  {
+   "from": "adm-420",
+   "to": "adm-800",
+   "color": "v"
+  },
+  {
+   "from": "adm-800",
+   "to": "adm-1180",
+   "color": "v"
+  }
+ ],
+ "texts": [
+  {
+   "x": 107,
+   "y": 190,
+   "text": "1. Sign in"
+  },
+  {
+   "x": 107,
+   "y": 230,
+   "text": "2. redirect \u2192 login page (username / password, MFA in Entra)"
+  },
+  {
+   "x": 107,
+   "y": 255,
+   "text": "authorization_endpoint on the public issuer (localhost:8180)",
+   "color": "grey"
+  },
+  {
+   "x": 307,
+   "y": 278,
+   "text": "3. code \u2192 token exchange (server side)"
+  },
+  {
+   "x": 307,
+   "y": 303,
+   "text": "via OIDC_INTERNAL_ISSUER (keycloak:8080); access + refresh token in encrypted cookie",
+   "color": "grey"
+  },
+  {
+   "x": 107,
+   "y": 388,
+   "text": "4. POST /api/agents/{slug}/run"
+  },
+  {
+   "x": 107,
+   "y": 413,
+   "text": "RunAgentInput {threadId, runId, messages}",
+   "color": "grey"
+  },
+  {
+   "x": 307,
+   "y": 436,
+   "text": "5. + Authorization: Bearer <access token>"
+  },
+  {
+   "x": 307,
+   "y": 461,
+   "text": "+ x-agui-thread-id",
+   "color": "grey"
+  },
+  {
+   "x": 707,
+   "y": 551,
+   "text": "6. POST /run (no user token)"
+  },
+  {
+   "x": 707,
+   "y": 576,
+   "text": "x-langflow-flow-id \u00b7 x-end-user-id \u00b7 x-api-key",
+   "color": "grey"
+  },
+  {
+   "x": 907,
+   "y": 666,
+   "text": "7. POST /api/v2/workflows"
+  },
+  {
+   "x": 907,
+   "y": 691,
+   "text": "flow_id \u00b7 input_value \u00b7 session_id = threadId",
+   "color": "grey"
+  },
+  {
+   "x": 1107,
+   "y": 766,
+   "text": "8. POST /v1/chat/completions"
+  },
+  {
+   "x": 1107,
+   "y": 791,
+   "text": "runtime key \u00b7 x-end-user-id \u00b7 x-agent-slug \u00b7 x-agui-thread-id",
+   "color": "grey"
+  },
+  {
+   "x": 1307,
+   "y": 810,
+   "text": "9. ollama/qwen3:8b \u2192 Ollama"
+  },
+  {
+   "x": 1307,
+   "y": 835,
+   "text": "Logs/Analytics: user, agent, tokens",
+   "color": "grey"
+  },
+  {
+   "x": 1107,
+   "y": 854,
+   "text": "10. tool call (make_api_request \u2192 business API)"
+  },
+  {
+   "x": 907,
+   "y": 904,
+   "text": "11. AG-UI SSE events"
+  },
+  {
+   "x": 907,
+   "y": 929,
+   "text": "TEXT_MESSAGE_* \u00b7 TOOL_CALL_* \u00b7 RUN_FINISHED",
+   "color": "grey"
+  },
+  {
+   "x": 107,
+   "y": 954,
+   "text": "12. same events with the client's threadId/runId, langflow.* dropped \u2192 back through gateway and portal"
+  },
+  {
+   "x": 107,
+   "y": 979,
+   "text": "portal renders tokens, tool cards, markdown",
+   "color": "grey"
+  },
+  {
+   "x": 907,
+   "y": 1122,
+   "text": "13. CUSTOM langflow.human_input_required"
+  },
+  {
+   "x": 907,
+   "y": 1147,
+   "text": "request_id \u00b7 options \u00b7 prompt",
+   "color": "grey"
+  },
+  {
+   "x": 107,
+   "y": 1170,
+   "text": "14. RUN_FINISHED {outcome: interrupt}"
+  },
+  {
+   "x": 107,
+   "y": 1195,
+   "text": "id = job + request + event id \u00b7 message \u00b7 responseSchema (options) \u00b7 expiresAt",
+   "color": "grey"
+  },
+  {
+   "x": 107,
+   "y": 1224,
+   "text": "15. new run with resume: [{interruptId, status, payload: {action_id}}]"
+  },
+  {
+   "x": 107,
+   "y": 1249,
+   "text": "via portal (Bearer) and gateway (JWT, roles) as in 4\u20136",
+   "color": "grey"
+  },
+  {
+   "x": 907,
+   "y": 1274,
+   "text": "16. POST /{job}/resume + GET /{job}/events (Last-Event-ID)"
+  },
+  {
+   "x": 907,
+   "y": 1299,
+   "text": "cancelled \u2192 POST /stop \u00b7 other user \u2192 'job not found'",
+   "color": "grey"
+  },
+  {
+   "x": 107,
+   "y": 1324,
+   "text": "17. remaining events (branch output / tool result, answer) \u2192 portal"
+  },
+  {
+   "x": 107,
+   "y": 1349,
+   "text": "as in 11\u201312",
+   "color": "grey"
+  },
+  {
+   "x": 40,
+   "y": 14,
+   "text": "Agent platform \u00b7 data flow",
+   "size": "l"
+  },
+  {
+   "x": 40,
+   "y": 1628,
+   "text": "Secrets never in the browser: tokens stay in the portal's encrypted cookie; the Langflow key is added by the gateway; provider keys live only in the gateway. Dashed = responses / streams.",
+   "size": "s",
+   "w": 1500
+  }
+ ],
+ "lines": [
+  {
+   "x": 95,
+   "y1": 136,
+   "lane": "br",
+   "y2": 1386
+  },
+  {
+   "x": 295,
+   "y1": 136,
+   "lane": "po",
+   "y2": 1386
+  },
+  {
+   "x": 495,
+   "y1": 136,
+   "lane": "idp",
+   "y2": 1386
+  },
+  {
+   "x": 695,
+   "y1": 136,
+   "lane": "gw",
+   "y2": 1386
+  },
+  {
+   "x": 895,
+   "y1": 136,
+   "lane": "ad",
+   "y2": 1386
+  },
+  {
+   "x": 1095,
+   "y1": 136,
+   "lane": "rt",
+   "y2": 1386
+  },
+  {
+   "x": 1295,
+   "y1": 136,
+   "lane": "sv",
+   "y2": 1386
+  },
+  {
+   "x": 1495,
+   "y1": 136,
+   "lane": "ex",
+   "y2": 1386
+  }
+ ],
+ "scale": 0.62
+}

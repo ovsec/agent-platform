@@ -1,0 +1,444 @@
+{
+ "boxes": [
+  {
+   "id": "users",
+   "x": 40,
+   "y": 110,
+   "w": 244,
+   "h": 128,
+   "kind": "people",
+   "lines": [
+    "End users",
+    "Find the right agent, ask",
+    "questions, approve or reject",
+    "actions the agent proposes.",
+    "browser"
+   ]
+  },
+  {
+   "id": "admins",
+   "x": 40,
+   "y": 254,
+   "w": 244,
+   "h": 128,
+   "kind": "idp",
+   "lines": [
+    "Agent admins",
+    "Govern models, tools and",
+    "access; see who used what.",
+    "role agent-admin"
+   ]
+  },
+  {
+   "id": "devs",
+   "x": 40,
+   "y": 398,
+   "w": 244,
+   "h": 120,
+   "kind": "dev",
+   "lines": [
+    "Agent developers",
+    "Build and test agents, then",
+    "publish them to the catalog.",
+    "Langflow \u00b7 code (planned)"
+   ]
+  },
+  {
+   "id": "portal",
+   "x": 332,
+   "y": 110,
+   "w": 298,
+   "h": 214,
+   "kind": "ui",
+   "lines": [
+    "Portal",
+    "One place for every agent:",
+    "sign in, search the catalog,",
+    "chat with streaming answers,",
+    "tool results and approval cards.",
+    "Same experience whatever runtime",
+    "is behind an agent.",
+    "Next.js \u00b7 assistant-ui \u00b7 AG-UI \u00b7 branding"
+   ]
+  },
+  {
+   "id": "idp",
+   "x": 332,
+   "y": 340,
+   "w": 298,
+   "h": 178,
+   "kind": "idp",
+   "lines": [
+    "Identity provider (OIDC)",
+    "Who you are and which roles",
+    "you have. One login for the",
+    "portal and the gateway UI;",
+    "any OIDC provider.",
+    "Keycloak locally \u00b7 Entra ID / Okta"
+   ]
+  },
+  {
+   "id": "gw",
+   "x": 678,
+   "y": 110,
+   "w": 284,
+   "h": 408,
+   "kind": "gw",
+   "lines": [
+    "agentgateway",
+    "The single front door.",
+    "\u2022 checks identity and roles",
+    "  for every agent call",
+    "\u2022 routes /agents/{slug}/run to",
+    "  the right runtime",
+    "\u2022 governs model and tool use:",
+    "  keys, guardrails, budgets",
+    "\u2022 records who called which agent",
+    "  and which model (audit, analytics)",
+    "\u2022 admin UI for models and MCP",
+    "agent API \u00b7 admin UI \u00b7 LLM/MCP services"
+   ]
+  },
+  {
+   "id": "adapter",
+   "x": 1010,
+   "y": 110,
+   "w": 258,
+   "h": 128,
+   "kind": "rt",
+   "lines": [
+    "Langflow adapter",
+    "Lets Langflow agents speak",
+    "standard AG-UI, incl. pausing",
+    "for a human and resuming.",
+    "FastAPI \u00b7 stateless"
+   ]
+  },
+  {
+   "id": "runtime",
+   "x": 1010,
+   "y": 254,
+   "w": 258,
+   "h": 128,
+   "kind": "rt",
+   "lines": [
+    "Langflow runtime",
+    "Runs the published visual",
+    "agents, with per-user memory",
+    "and human-in-the-loop.",
+    "Langflow 1.12 \u00b7 headless"
+   ]
+  },
+  {
+   "id": "code",
+   "x": 1010,
+   "y": 398,
+   "w": 258,
+   "h": 120,
+   "kind": "plan",
+   "lines": [
+    "Code runtimes",
+    "Run code-first agents behind",
+    "the same front door.",
+    "Pydantic AI \u00b7 LangGraph \u00b7 CrewAI"
+   ]
+  },
+  {
+   "id": "llm",
+   "x": 1316,
+   "y": 110,
+   "w": 244,
+   "h": 128,
+   "kind": "ext",
+   "lines": [
+    "LLM providers",
+    "The models agents think with,",
+    "reached only through the",
+    "gateway (keys stay there).",
+    "Ollama \u00b7 cloud LLMs"
+   ]
+  },
+  {
+   "id": "ent",
+   "x": 1316,
+   "y": 254,
+   "w": 244,
+   "h": 128,
+   "kind": "ext",
+   "lines": [
+    "Enterprise systems",
+    "The data and actions agents",
+    "work on, through tools.",
+    "Business system \u00b7 APIs"
+   ]
+  },
+  {
+   "id": "mcp",
+   "x": 1316,
+   "y": 398,
+   "w": 244,
+   "h": 120,
+   "kind": "plan",
+   "lines": [
+    "Shared tools (MCP)",
+    "Tools every runtime can use,",
+    "governed by the gateway.",
+    "MCP servers via gateway"
+   ]
+  },
+  {
+   "id": "builder",
+   "x": 40,
+   "y": 580,
+   "w": 296,
+   "h": 194,
+   "kind": "dev",
+   "lines": [
+    "Langflow Builder",
+    "Where developers design and",
+    "test agents visually: prompts,",
+    "models, tools, human approval",
+    "steps, in a playground.",
+    "shared visual editor"
+   ]
+  },
+  {
+   "id": "publish",
+   "x": 356,
+   "y": 580,
+   "w": 296,
+   "h": 194,
+   "kind": "dev",
+   "lines": [
+    "Publish (publish.py)",
+    "Turns a tested flow into a live",
+    "catalog agent in one step, with",
+    "no restarts: routes models via",
+    "the gateway, updates runtime,",
+    "catalog and gateway routes.",
+    "later: run by CI on PR merge"
+   ]
+  },
+  {
+   "id": "git",
+   "x": 672,
+   "y": 580,
+   "w": 306,
+   "h": 194,
+   "kind": "data",
+   "lines": [
+    "Git repository",
+    "Source of truth: flows, catalog",
+    "entries (agents/*.yaml), gateway",
+    "base config, components, portal,",
+    "adapter. Reviewed by PR.",
+    "flows/ \u00b7 agents/ \u00b7 gateway/ \u00b7 apps/"
+   ]
+  },
+  {
+   "id": "state",
+   "x": 1026,
+   "y": 580,
+   "w": 260,
+   "h": 194,
+   "kind": "data",
+   "lines": [
+    "Databases & volumes",
+    "Keep state: identities, flows,",
+    "run jobs and memory, gateway",
+    "UI settings and request logs,",
+    "log-search index.",
+    "Postgres \u00b7 SQLite \u00b7 DuckDB/Chroma"
+   ]
+  },
+  {
+   "id": "obs",
+   "x": 1302,
+   "y": 580,
+   "w": 258,
+   "h": 194,
+   "kind": "plan",
+   "lines": [
+    "Observability",
+    "Searchable logs, metrics,",
+    "traces and audit dashboards:",
+    "usage, errors, latency, cost",
+    "per agent and user.",
+    "Alloy \u00b7 Loki \u00b7 Grafana (planned)"
+   ]
+  }
+ ],
+ "zones": [
+  {
+   "x": 24,
+   "y": 84,
+   "w": 276,
+   "h": 450,
+   "label": "PEOPLE"
+  },
+  {
+   "x": 316,
+   "y": 84,
+   "w": 330,
+   "h": 450,
+   "label": "EXPERIENCE & IDENTITY"
+  },
+  {
+   "x": 662,
+   "y": 84,
+   "w": 316,
+   "h": 450,
+   "label": "FRONT DOOR"
+  },
+  {
+   "x": 994,
+   "y": 84,
+   "w": 290,
+   "h": 450,
+   "label": "AGENT RUNTIMES"
+  },
+  {
+   "x": 1300,
+   "y": 84,
+   "w": 276,
+   "h": 450,
+   "label": "WHAT AGENTS USE"
+  },
+  {
+   "x": 24,
+   "y": 554,
+   "w": 970,
+   "h": 236,
+   "label": "BUILD & PUBLISH"
+  },
+  {
+   "x": 1010,
+   "y": 554,
+   "w": 566,
+   "h": 236,
+   "label": "STATE & INSIGHT"
+  }
+ ],
+ "arrows": [
+  {
+   "from": "users",
+   "to": "portal",
+   "color": "b",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "portal",
+   "to": "gw",
+   "color": "b",
+   "label": "AG-UI",
+   "dashed": false
+  },
+  {
+   "from": "idp",
+   "to": "portal",
+   "color": "v",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "idp",
+   "to": "gw",
+   "color": "v",
+   "label": "tokens",
+   "dashed": false
+  },
+  {
+   "from": "admins",
+   "to": "gw",
+   "color": "v",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "gw",
+   "to": "adapter",
+   "color": "b",
+   "label": "/run",
+   "dashed": false
+  },
+  {
+   "from": "gw",
+   "to": "code",
+   "color": "s",
+   "label": null,
+   "dashed": true
+  },
+  {
+   "from": "adapter",
+   "to": "runtime",
+   "color": "b",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "runtime",
+   "to": "llm",
+   "color": "o",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "runtime",
+   "to": "ent",
+   "color": "o",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "code",
+   "to": "mcp",
+   "color": "s",
+   "label": null,
+   "dashed": true
+  },
+  {
+   "from": "devs",
+   "to": "builder",
+   "color": "g",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "builder",
+   "to": "publish",
+   "color": "g",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "publish",
+   "to": "git",
+   "color": "g",
+   "label": null,
+   "dashed": false
+  },
+  {
+   "from": "publish",
+   "to": "runtime",
+   "color": "g",
+   "label": "publish",
+   "dashed": false
+  }
+ ],
+ "texts": [
+  {
+   "x": 40,
+   "y": 14,
+   "text": "Agent platform \u00b7 components and their purpose",
+   "size": "l"
+  },
+  {
+   "x": 40,
+   "y": 860,
+   "text": "One front door (agentgateway) for agents, models and tools \u00b7 standard AG-UI between portal and every runtime \u00b7 generic OIDC \u00b7 git as source of truth, publish without restarts \u00b7 keys and user tokens never reach the browser or the flows. Dashed = planned.",
+   "size": "s",
+   "w": 1500
+  }
+ ]
+}

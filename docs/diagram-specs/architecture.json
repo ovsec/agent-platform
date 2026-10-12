@@ -1,0 +1,60 @@
+{
+ "texts": [
+  {"x": 40, "y": 14, "text": "Agent platform · system architecture", "size": "l"},
+  {"x": 40, "y": 1166, "text": "blue = user request / AG-UI · violet = identity · orange = model / tool calls · green = build & publish · grey dashed = reads / planned. Local ports on 127.0.0.1; in AKS only :3100 (and the IdP) behind the ingress, :4101 internal, :4102 / adapter / runtime cluster-internal.", "size": "s", "w": 1520}
+ ],
+ "zones": [
+  {"x": 24, "y": 84, "w": 1552, "h": 92, "label": "PEOPLE"},
+  {"x": 24, "y": 190, "w": 1110, "h": 190, "label": "EXPERIENCE & IDENTITY"},
+  {"x": 24, "y": 394, "w": 1110, "h": 300, "label": "GATEWAY · agentgateway v1.6, one container, three listeners"},
+  {"x": 24, "y": 708, "w": 1110, "h": 232, "label": "AGENT RUNTIMES"},
+  {"x": 24, "y": 954, "w": 1552, "h": 196, "label": "DATA & BACKING SERVICES"},
+  {"x": 1150, "y": 190, "w": 426, "h": 750, "label": "BUILD & PUBLISH · no restarts"}
+ ],
+ "boxes": [
+  {"id": "users", "x": 300, "y": 110, "w": 300, "h": 54, "kind": "people", "lines": ["End users", "browser · catalog, chat, approvals"]},
+  {"id": "admins", "x": 640, "y": 110, "w": 260, "h": 54, "kind": "idp", "lines": ["Agent admins", "agent-admin · models, MCP, audit"]},
+  {"id": "devs", "x": 1190, "y": 110, "w": 350, "h": 54, "kind": "dev", "lines": ["Agent developers", "Langflow flows · code agents (planned)"]},
+  {"id": "idp", "x": 40, "y": 222, "w": 230, "h": 146, "kind": "idp", "lines": ["OIDC IdP", "Keycloak :8180 (local)", "Entra ID / Okta (other envs)", "clients: agent-portal, agent-gateway-ui", "token: sub · aud · roles[] · name"]},
+  {"id": "portal", "x": 300, "y": 222, "w": 560, "h": 146, "kind": "ui", "lines": ["Portal · Next.js 15 (container :3100)", "assistant-ui + AG-UI HttpAgent (one per agent, any runtime)", "catalog: search, topics, recent · chat: sidebar, thread, HITL card", "Auth.js generic OIDC (tokens in encrypted cookie)", "/api/agents/{slug}/run: adds Bearer token, streams SSE", "branding: brands/<id>/brand.json"]},
+  {"id": "catalog", "x": 890, "y": 222, "w": 230, "h": 146, "kind": "data", "lines": ["Agents catalog (git)", "agents/<slug>.yaml", "name, team, tags, runtime", "access.roles, starter prompts", "platform.yaml: admin_roles"]},
+  {"id": "gwbox", "x": 40, "y": 420, "w": 1080, "h": 262, "kind": "gw-container", "lines": [" "]},
+  {"id": "gwdef", "x": 56, "y": 436, "w": 340, "h": 170, "kind": "gw", "lines": ["default · agent API · :4100", "jwtAuth strict (issuer, JWKS, aud)", "per-agent CEL: roles ∩ access.roles ∪ admin", "POST /agents/{slug}/run → backend", "sets x-end-user-id, x-langflow-flow-id, x-api-key", "audit: user.*, agent.thread, status"]},
+  {"id": "gwadm", "x": 410, "y": 436, "w": 330, "h": 170, "kind": "gw", "lines": ["admin-ui · gateway UI · :4101", "browser OIDC login, agent-admin only", "LLM models & providers, MCP servers", "policies, guardrails, virtual keys", "Logs & Analytics (users, groups)", "UI edits → hybrid overlay (DB)"]},
+  {"id": "gwsvc", "x": 754, "y": 436, "w": 350, "h": 170, "kind": "gw", "lines": ["services · LLM & MCP · :4102", "apiKey strict (per-runtime key hashes)", "/v1/chat/completions, /v1/models, /mcp", "standardAttributes: user ← x-end-user-id,", "group ← x-agent-slug", "model ollama/* added in the UI"]},
+  {"id": "gwcfg", "x": 250, "y": 620, "w": 326, "h": 50, "kind": "data", "lines": ["config.yaml ← base + agents/ + platform.yaml", "gen-gateway.py · hot reload"]},
+  {"id": "agwdata", "x": 590, "y": 620, "w": 330, "h": 50, "kind": "data", "lines": ["agw_data (SQLite): UI overlay + request logs"]},
+  {"id": "adapter", "x": 40, "y": 740, "w": 320, "h": 188, "kind": "rt", "lines": ["Langflow AG-UI adapter · :8080", "FastAPI, stateless", "normal flows → mode stream (tokens)", "Human Input / tool approval → background + events", "pause → RUN_FINISHED interrupt", "resume[] → POST /{job}/resume", "client ids, drops langflow.* events"]},
+  {"id": "runtime", "x": 380, "y": 740, "w": 420, "h": 188, "kind": "rt", "lines": ["Langflow Runtime 1.12.3 · headless · :7880", "runs flows published by publish.py (Workflow API v2)", "end user X-End-User-Id → memory <user>::<thread>", "components: agentgateway Model, team tools", "HITL: Human Input node, tool approval_actions", "models via agentgateway:4102"]},
+  {"id": "code", "x": 820, "y": 740, "w": 300, "h": 188, "kind": "plan", "lines": ["Code runtimes (planned)", "Pydantic AI · LangGraph · CrewAI", "native AG-UI (runtime: agui)", "standard interrupts → same HITL card", "models/tools via :4102 with headers"]},
+  {"id": "builder", "x": 1166, "y": 222, "w": 394, "h": 150, "kind": "dev", "lines": ["Langflow Builder · :7870", "shared visual editor and playground", "Human Input nodes, tool Actions approval", "own DB, builder gateway key", "AKS: behind oauth2-proxy (same IdP)"]},
+  {"id": "publish", "x": 1166, "y": 420, "w": 394, "h": 210, "kind": "dev", "lines": ["scripts/publish.py", "1 export flow from the Builder (or --file)", "2 connect an agentgateway Model to each Agent", "3 write flows/<slug>.json + agents/<slug>.yaml", "4 upsert into runtime (+ Builder) by API", "5 regenerate gateway/config.yaml (hot reload)", "--all seeds a fresh stack · e2e.py checks"]},
+  {"id": "git", "x": 1166, "y": 660, "w": 394, "h": 268, "kind": "data", "lines": ["Git repo (agent-platform)", "flows/ · agents/ · components/", "gateway/base.yaml · platform.yaml", "services/langflow-adapter · apps/portal", "infra/ · docker-compose.yml · docs/", "never committed: .env, .secrets/, gateway/config.yaml", "PR merge = publish (CI, planned P3)"]},
+  {"id": "pg", "x": 40, "y": 984, "w": 300, "h": 152, "kind": "data", "lines": ["Postgres 17 · :5440", "keycloak", "langflow_runtime (flows, jobs, messages)", "langflow_builder", "portal (P2: catalog, threads)"]},
+  {"id": "vol", "x": 360, "y": 984, "w": 300, "h": 152, "kind": "data", "lines": ["Volumes", "agw_data: gateway overlay + logs", "pg_data: Postgres", ".secrets: runtime API key"]},
+  {"id": "ollama", "x": 680, "y": 984, "w": 220, "h": 152, "kind": "ext", "lines": ["Ollama", "host.docker.internal:11434", "qwen3:8b (agents)", "nomic-embed-text (log search)", "cloud LLMs: add in UI"]},
+  {"id": "biz", "x": 920, "y": 984, "w": 214, "h": 152, "kind": "ext", "lines": ["Business system · host :8000", "REST / OData APIs (mock or live)", "monitoring, docs RAG"]},
+  {"id": "mcp", "x": 1166, "y": 984, "w": 190, "h": 152, "kind": "plan", "lines": ["MCP servers", "shared tools via :4102 /mcp", "(planned)"]},
+  {"id": "obs", "x": 1370, "y": 984, "w": 190, "h": 152, "kind": "plan", "lines": ["Observability", "Alloy → Loki, Prometheus, Tempo, Grafana", "(planned)"]}
+ ],
+ "arrows": [
+  {"from": "users", "to": "portal", "color": "b"},
+  {"from": "portal", "to": "idp", "color": "v", "label": "OIDC"},
+  {"from": "portal", "to": "catalog", "color": "s", "dashed": true, "label": "reads"},
+  {"from": "portal", "to": "gwdef", "color": "b", "label": "AG-UI + Bearer JWT"},
+  {"from": "idp", "to": "gwdef", "color": "v", "label": "JWKS"},
+  {"from": "admins", "to": "gwadm", "color": "v", "label": "browser login"},
+  {"from": "gwdef", "to": "adapter", "color": "b", "label": "/run"},
+  {"from": "gwdef", "to": "code", "color": "s", "dashed": true, "label": "runtime: agui"},
+  {"from": "adapter", "to": "runtime", "color": "b"},
+  {"from": "runtime", "to": "gwsvc", "color": "o", "label": "LLM + user/agent/thread"},
+  {"from": "gwsvc", "to": "ollama", "color": "o"},
+  {"from": "runtime", "to": "biz", "color": "o", "label": "tools"},
+  {"from": "runtime", "to": "pg", "color": "s", "dashed": true},
+  {"from": "devs", "to": "builder", "color": "g"},
+  {"from": "builder", "to": "publish", "color": "g", "label": "export"},
+  {"from": "publish", "to": "git", "color": "g"},
+  {"from": "publish", "to": "runtime", "color": "g", "label": "upsert flow (API)"},
+  {"from": "publish", "to": "gwcfg", "color": "g", "label": "routes"}
+ ]
+}

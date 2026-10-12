@@ -1,0 +1,36 @@
+{
+  "name": "portal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@ag-ui/client": "^0.0.59",
+    "@assistant-ui/react": "^0.15.26",
+    "@assistant-ui/react-ag-ui": "^0.0.66",
+    "@assistant-ui/react-markdown": "^0.14.20",
+    "lucide-react": "^1.55.0",
+    "next": "15.5.27",
+    "next-auth": "^5.0.0-beta.32",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remark-gfm": "^4.0.1",
+    "server-only": "^0.0.1",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.27",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

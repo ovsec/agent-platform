@@ -1,0 +1,74 @@
+%% Agent platform · components and their purpose (picture: components.svg)
+flowchart LR
+  subgraph people["People"]
+    users["<b>End users</b><br/>find the right agent, ask questions,<br/>approve or reject proposed actions"]
+    admins["<b>Agent admins</b><br/>govern models, tools and access;<br/>see who used what"]
+    devs["<b>Agent developers</b><br/>build and test agents,<br/>publish them to the catalog"]
+  end
+
+  subgraph exp["Experience & identity"]
+    portal["<b>Portal</b><br/>one place for every agent: sign in, search,<br/>chat with streaming answers, tool results<br/>and approval cards, whatever the runtime"]
+    idp["<b>Identity provider (OIDC)</b><br/>who you are and your roles;<br/>one login for portal and gateway UI"]
+  end
+
+  subgraph door["Front door"]
+    gw["<b>agentgateway</b><br/>checks identity and roles for every call ·<br/>routes each agent to its runtime ·<br/>governs model and tool use (keys, guardrails) ·<br/>records who called which agent and model"]
+  end
+
+  subgraph runtimes["Agent runtimes"]
+    adapter["<b>Langflow adapter</b><br/>Langflow speaks standard AG-UI,<br/>incl. pausing for a human"]
+    runtime["<b>Langflow runtime</b><br/>runs published visual agents with<br/>per-user memory and human-in-the-loop"]
+    code["<b>Code runtimes</b> (planned)<br/>code-first agents behind the same door"]
+  end
+
+  subgraph uses["What agents use"]
+    llm["<b>LLM providers</b><br/>the models, reached only via the gateway"]
+    ent["<b>Enterprise systems</b><br/>data and actions agents work on (e.g. an ERP)"]
+    mcp["<b>Shared tools (MCP)</b> (planned)<br/>tools every runtime can use"]
+  end
+
+  subgraph build["Build & publish"]
+    builder["<b>Langflow Builder</b><br/>design and test agents visually"]
+    publish["<b>Publish</b><br/>a tested flow becomes a live catalog<br/>agent in one step, no restarts"]
+    git[("<b>Git repository</b><br/>source of truth, reviewed by PR")]
+  end
+
+  subgraph insight["State & insight"]
+    state[("<b>Databases & volumes</b><br/>identities, flows, jobs and memory,<br/>gateway settings and request logs")]
+    obs["<b>Observability</b> (planned)<br/>logs, metrics, traces, audit dashboards"]
+  end
+
+  users --> portal
+  idp --> portal
+  idp -- tokens --> gw
+  portal -- AG-UI --> gw
+  admins --> gw
+  gw -- "/run" --> adapter
+  gw -.-> code
+  adapter --> runtime
+  runtime -- "via gateway" --> llm
+  runtime --> ent
+  code -.-> mcp
+  devs --> builder
+  builder --> publish
+  publish --> git
+  publish -- publish --> runtime
+  runtime -.-> state
+  gw -.-> obs
+
+  classDef ui fill:#ffffff,stroke:#005d92,stroke-width:2px
+  classDef idp fill:#f5f3ff,stroke:#7c3aed
+  classDef gw fill:#eff6ff,stroke:#2563eb,stroke-width:2px
+  classDef rt fill:#f0fdfa,stroke:#0d9488
+  classDef dev fill:#ecfdf5,stroke:#059669
+  classDef ext fill:#fff7ed,stroke:#d97706
+  classDef store fill:#f8fafc,stroke:#475569
+  classDef plan fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 5,color:#475569
+  class portal ui
+  class idp,admins idp
+  class gw gw
+  class adapter,runtime rt
+  class devs,builder,publish dev
+  class llm,ent ext
+  class git,state store
+  class code,mcp,obs plan

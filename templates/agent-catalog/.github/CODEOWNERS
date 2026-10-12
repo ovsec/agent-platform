@@ -1,0 +1,4 @@
+# Releases under stage/ and prod/ are written by the agent workflow and auto-merge once `validate` passes;
+# who may release which slug is decided by owners.yaml, which only the platform team changes.
+/owners.yaml  @ORG/agent-platform
+/.github/     @ORG/agent-platform

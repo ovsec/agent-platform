@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent.schema.json",
+  "title": "Agent manifest v1 (agent.yaml in agent repos, agent-catalog and the local catalog/)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slug", "name", "description", "owner_team", "runtime", "access"],
+  "properties": {
+    "slug": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 50,
+             "description": "Catalog id, URL path /agents/{slug}/run and Langflow endpoint name"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 80},
+    "description": {"type": "string", "minLength": 1, "maxLength": 300},
+    "owner_team": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+    "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "runtime": {"enum": ["langflow", "agui"]},
+    "langflow": {
+      "type": "object", "additionalProperties": false, "required": ["flow_id"],
+      "properties": {"flow_id": {"type": "string", "format": "uuid"}}
+    },
+    "agui": {
+      "type": "object", "additionalProperties": false, "required": ["host", "path"],
+      "properties": {
+        "host": {"type": "string", "pattern": "^[a-z0-9.-]+:[0-9]+$", "description": "host:port the gateway forwards to"},
+        "path": {"type": "string", "pattern": "^/"}
+      }
+    },
+    "access": {
+      "type": "object", "additionalProperties": false, "required": ["roles"],
+      "properties": {
+        "roles": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true,
+                  "description": "OIDC `roles` claim values allowed to use the agent (admin roles are added)"}
+      }
+    },
+    "starter_prompts": {"type": "array", "items": {"type": "string", "minLength": 1}, "maxItems": 6}
+  },
+  "allOf": [
+    {"if": {"properties": {"runtime": {"const": "langflow"}}}, "then": {"required": ["langflow"], "not": {"required": ["agui"]}}},
+    {"if": {"properties": {"runtime": {"const": "agui"}}}, "then": {"required": ["agui"], "not": {"required": ["langflow"]}}}
+  ]
+}

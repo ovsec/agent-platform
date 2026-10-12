@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/* Colours, fonts and radii come from the active brand (src/lib/brand.ts → brands/<id>/brand.json). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--brand-font-sans);
+  --font-mono: var(--brand-font-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--brand-font-sans);
+}
+
+/* Markdown in assistant messages */
+.aui-md > * + * { margin-top: 0.85em; }
+.aui-md ul { list-style: disc; padding-left: 1.25rem; }
+.aui-md ol { list-style: decimal; padding-left: 1.25rem; }
+.aui-md h1, .aui-md h2, .aui-md h3 { font-weight: 600; }
+.aui-md code { font-family: var(--brand-font-mono); font-size: 0.9em; }
+.aui-md pre { overflow-x: auto; border-radius: 0.5rem; background: var(--muted); padding: 0.75rem; }
+.aui-md table { border-collapse: separate; border-spacing: 0; border: 1px solid var(--border); border-radius: var(--radius-card); display: block; width: fit-content; max-width: 100%; overflow-x: auto; font-size: 0.925em; }
+.aui-md th, .aui-md td { border-bottom: 1px solid var(--border); padding: 0.45rem 0.75rem; text-align: left; }
+.aui-md tr:last-child td { border-bottom: 0; }
+.aui-md th { background: var(--muted); font-weight: 600; }
+.aui-md li + li { margin-top: 0.25em; }
+.aui-md a { color: var(--accent); text-decoration: underline; }
+
+/* horizontal chip rows on small screens */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }

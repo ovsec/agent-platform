@@ -1,0 +1,87 @@
+%% Agent platform · system architecture (detailed picture: architecture.svg)
+flowchart TB
+  subgraph people["People"]
+    direction LR
+    users["End users<br/>browser · catalog, chat, approvals"]
+    admins["Agent admins<br/>role agent-admin · models, MCP, audit"]
+    devs["Agent developers<br/>Langflow flows · code agents (planned)"]
+  end
+
+  subgraph exp["Experience & identity"]
+    direction LR
+    idp["OIDC IdP<br/>Keycloak :8180 · Entra ID / Okta<br/>token: sub · aud · roles[]"]
+    portal["Portal · Next.js :3100<br/>assistant-ui + AG-UI HttpAgent<br/>Auth.js OIDC · catalog · chat · HITL card"]
+    catalog[("agents/*.yaml + platform.yaml<br/>catalog, roles, routes source")]
+  end
+
+  subgraph gw["agentgateway v1.6 · one container, three listeners"]
+    direction LR
+    gwdef["default :4100 · agent API<br/>JWT strict · per-agent roles (CEL)<br/>audit: user, agent, thread"]
+    gwadm["admin-ui :4101 · gateway UI<br/>OIDC login · agent-admin only<br/>models, MCP, logs, analytics"]
+    gwsvc["services :4102 · LLM & MCP<br/>API key per runtime<br/>user / agent attribution"]
+    gwcfg[("config.yaml (generated, hot reload)<br/>agw_data: UI overlay + request logs")]
+  end
+
+  subgraph rt["Agent runtimes"]
+    direction LR
+    adapter["Langflow AG-UI adapter :8080<br/>stream · background + events<br/>interrupts ↔ resume (stateless)"]
+    runtime["Langflow Runtime :7880<br/>memory per user and thread<br/>Human Input · tool approval"]
+    code["Code runtimes (planned)<br/>Pydantic AI · LangGraph · CrewAI"]
+  end
+
+  subgraph build["Build & publish · no restarts"]
+    direction LR
+    builder["Langflow Builder :7870<br/>visual editor · playground"]
+    publish["scripts/publish.py<br/>gateway model · flows/ + agents/<br/>runtime API · routes"]
+    git[("Git repo<br/>flows/ agents/ components/ gateway/")]
+  end
+
+  subgraph data["Data & backing services"]
+    direction LR
+    pg[("Postgres :5440<br/>keycloak · langflow_runtime · langflow_builder")]
+    vol[("Volumes<br/>agw_data · pg_data")]
+    ollama["Ollama :11434<br/>qwen3:8b · nomic-embed-text"]
+    biz["Business system :8000<br/>REST / OData APIs, docs"]
+    mcp["MCP servers (planned)"]
+    obs["Observability (planned)<br/>Loki · Prometheus · Tempo · Grafana"]
+  end
+
+  users --> portal
+  portal -- OIDC --> idp
+  portal -. reads .-> catalog
+  portal -- "AG-UI + Bearer JWT" --> gwdef
+  idp -- JWKS --> gwdef
+  admins -- "browser login" --> gwadm
+  gwdef -- "/run · flow id, user, key" --> adapter
+  gwdef -. "runtime: agui" .-> code
+  adapter -- "Workflow API v2" --> runtime
+  runtime -- "LLM + user / agent / thread" --> gwsvc
+  code -.-> gwsvc
+  gwsvc --> ollama
+  gwsvc -.-> mcp
+  runtime -- tools --> biz
+  runtime -.-> pg
+  gwcfg -- "hot reload" --> gwdef
+  catalog --> gwcfg
+  devs --> builder
+  builder -- export --> publish
+  publish --> git
+  publish -- "upsert flow (API)" --> runtime
+  publish -- routes --> gwcfg
+
+  classDef ui fill:#ffffff,stroke:#005d92,stroke-width:2px
+  classDef idp fill:#f5f3ff,stroke:#7c3aed
+  classDef gw fill:#eff6ff,stroke:#2563eb
+  classDef rt fill:#f0fdfa,stroke:#0d9488
+  classDef dev fill:#ecfdf5,stroke:#059669
+  classDef ext fill:#fff7ed,stroke:#d97706
+  classDef store fill:#f8fafc,stroke:#475569
+  classDef plan fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 5,color:#475569
+  class portal ui
+  class idp,admins idp
+  class gwdef,gwadm,gwsvc gw
+  class adapter,runtime rt
+  class devs,builder,publish dev
+  class ollama,biz ext
+  class catalog,gwcfg,git,pg,vol store
+  class code,mcp,obs plan

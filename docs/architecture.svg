@@ -1,0 +1,284 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1240" width="1600" height="1240" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title>Agent platform: system architecture</title>
+  <defs>
+    <marker id="m-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+    <marker id="m-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker>
+    <marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+    <marker id="m-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker>
+    <marker id="m-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    <style>
+      .zone  { fill: none; stroke: #cbd5e1; stroke-width: 1.2; stroke-dasharray: 4 4; }
+      .zl    { font-size: 11px; font-weight: 700; fill: #94a3b8; letter-spacing: 1.2px; paint-order: stroke; stroke: #f8fafc; stroke-width: 5px; }
+      .box   { fill: #ffffff; stroke: #334155; stroke-width: 1.4; }
+      .plan  { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.4; stroke-dasharray: 6 4; }
+      .gw    { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
+      .lis   { fill: #ffffff; stroke: #2563eb; stroke-width: 1.3; }
+      .idp   { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 1.5; }
+      .dev   { fill: #ecfdf5; stroke: #059669; stroke-width: 1.5; }
+      .rt    { fill: #f0fdfa; stroke: #0d9488; stroke-width: 1.5; }
+      .data  { fill: #f8fafc; stroke: #475569; stroke-width: 1.4; }
+      .ext   { fill: #fff7ed; stroke: #d97706; stroke-width: 1.4; }
+      .ui    { fill: #ffffff; stroke: #005d92; stroke-width: 1.8; }
+      .h     { font-size: 15px; font-weight: 700; fill: #0f172a; }
+      .h2    { font-size: 13px; font-weight: 700; fill: #0f172a; }
+      .t     { font-size: 12px; fill: #334155; }
+      .s     { font-size: 11px; fill: #64748b; }
+      .port  { font-size: 11px; font-weight: 700; }
+      .lbl   { font-size: 11px; fill: #334155; paint-order: stroke; stroke: #f8fafc; stroke-width: 4px; }
+      .a-blue   { stroke: #2563eb; stroke-width: 1.8; fill: none; marker-end: url(#m-blue); }
+      .a-purple { stroke: #7c3aed; stroke-width: 1.6; fill: none; marker-end: url(#m-purple); }
+      .a-green  { stroke: #059669; stroke-width: 1.6; fill: none; marker-end: url(#m-green); }
+      .a-orange { stroke: #d97706; stroke-width: 1.6; fill: none; marker-end: url(#m-orange); }
+      .a-gray   { stroke: #64748b; stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; marker-end: url(#m-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1240" fill="#f8fafc"/>
+  <text x="40" y="42" font-size="24" font-weight="800" fill="#0f172a">Agent platform · system architecture</text>
+  <text x="40" y="64" class="s">Local Docker Compose stack (services/agent-platform). Every agent is POST /agents/{slug}/run speaking standard AG-UI. Dashed = planned.</text>
+
+  <!-- zones -->
+  <rect x="24" y="84" width="1552" height="92" rx="10" class="zone"/>
+  <text x="36" y="100" class="zl">PEOPLE</text>
+  <rect x="24" y="190" width="1110" height="190" rx="10" class="zone"/>
+  <text x="36" y="206" class="zl">EXPERIENCE &amp; IDENTITY</text>
+  <rect x="24" y="394" width="1110" height="300" rx="10" class="zone"/>
+  <text x="246" y="410" class="zl">GATEWAY (agentgateway v1.6, one container, three listeners)</text>
+  <rect x="24" y="708" width="1110" height="232" rx="10" class="zone"/>
+  <text x="36" y="724" class="zl">AGENT RUNTIMES</text>
+  <rect x="24" y="954" width="1552" height="196" rx="10" class="zone"/>
+  <text x="36" y="970" class="zl">DATA &amp; BACKING SERVICES</text>
+  <rect x="1150" y="190" width="426" height="750" rx="10" class="zone"/>
+  <text x="1162" y="206" class="zl">BUILD &amp; PUBLISH (no restarts)</text>
+
+  <!-- people -->
+  <rect x="300" y="110" width="300" height="54" rx="10" class="box"/>
+  <text x="318" y="134" class="h2">End users</text><text x="318" y="152" class="s">browser · catalog, chat, approvals</text>
+  <rect x="640" y="110" width="260" height="54" rx="10" class="idp"/>
+  <text x="658" y="134" class="h2">Agent admins</text><text x="658" y="152" class="s">role agent-admin · models, MCP, audit</text>
+  <rect x="1190" y="110" width="350" height="54" rx="10" class="dev"/>
+  <text x="1208" y="134" class="h2">Agent developers</text><text x="1208" y="152" class="s">visual flows in Langflow · code agents (planned)</text>
+
+  <!-- experience & identity -->
+  <rect x="40" y="222" width="230" height="146" rx="10" class="idp"/>
+  <text x="56" y="246" class="h">OIDC IdP</text>
+  <text x="56" y="266" class="t">Keycloak :8180 (local)</text>
+  <text x="56" y="283" class="t">Entra ID / Okta (other envs)</text>
+  <text x="56" y="303" class="s">clients: agent-portal,</text>
+  <text x="56" y="318" class="s">agent-gateway-ui</text>
+  <text x="56" y="338" class="s">token: iss · sub · aud=agent-platform</text>
+  <text x="56" y="353" class="s">roles[] · name · email</text>
+
+  <rect x="300" y="222" width="560" height="146" rx="10" class="ui"/>
+  <text x="318" y="246" class="h">Portal · Next.js 15 (container :3100)</text>
+  <text x="318" y="268" class="t">• assistant-ui + AG-UI HttpAgent (one per agent, any runtime)</text>
+  <text x="318" y="286" class="t">• catalog: search, topics, recent · chat: sidebar, thread, HITL card</text>
+  <text x="318" y="304" class="t">• Auth.js generic OIDC (tokens in encrypted cookie, refresh)</text>
+  <text x="318" y="322" class="t">• /api/agents/{slug}/run: adds Bearer token, streams SSE back</text>
+  <text x="318" y="340" class="t">• branding: brands/&lt;id&gt;/brand.json (BRAND=default)</text>
+  <text x="318" y="358" class="s">reads agents/*.yaml + platform.yaml (catalog, roles) · P2: Postgres</text>
+
+  <rect x="890" y="222" width="230" height="146" rx="10" class="box"/>
+  <text x="906" y="246" class="h2">Agents catalog (git)</text>
+  <text x="906" y="266" class="t">agents/&lt;slug&gt;.yaml</text>
+  <text x="906" y="284" class="s">name, description, team, tags</text>
+  <text x="906" y="300" class="s">runtime: langflow | agui</text>
+  <text x="906" y="316" class="s">access.roles, starter prompts</text>
+  <text x="906" y="336" class="t">platform.yaml</text>
+  <text x="906" y="352" class="s">admin_roles: [agent-admin]</text>
+
+  <!-- gateway -->
+  <rect x="40" y="420" width="1080" height="262" rx="12" class="gw"/>
+
+  <rect x="56" y="436" width="340" height="170" rx="10" class="lis"/>
+  <text x="72" y="458" class="h2">default · agent API</text><text x="330" y="458" class="port" fill="#2563eb">:4100</text>
+  <text x="72" y="478" class="t">• jwtAuth strict (issuer, JWKS, aud)</text>
+  <text x="72" y="496" class="t">• per-agent CEL: roles ∩ access.roles ∪ admin</text>
+  <text x="72" y="514" class="t">• POST /agents/{slug}/run → backend</text>
+  <text x="72" y="532" class="t">• sets x-end-user-id, x-langflow-flow-id,</text>
+  <text x="72" y="548" class="t">  x-api-key; strips Authorization</text>
+  <text x="72" y="568" class="t">• audit: user.*, agent.thread, status</text>
+  <text x="72" y="590" class="s">SSE streamed · 300 s idle timeout</text>
+
+  <rect x="410" y="436" width="330" height="170" rx="10" class="lis"/>
+  <text x="426" y="458" class="h2">admin-ui · gateway UI</text><text x="674" y="458" class="port" fill="#2563eb">:4101</text>
+  <text x="426" y="478" class="t">• browser OIDC login (agent-gateway-ui)</text>
+  <text x="426" y="496" class="t">• authorization: agent-admin only</text>
+  <text x="426" y="514" class="t">• LLM models &amp; providers, MCP servers,</text>
+  <text x="426" y="530" class="t">  policies, guardrails, virtual keys</text>
+  <text x="426" y="550" class="t">• Logs &amp; Analytics (users, groups)</text>
+  <text x="426" y="572" class="s">UI edits → hybrid overlay (DB);</text>
+  <text x="426" y="588" class="s">file baseline stays read-only</text>
+
+  <rect x="754" y="436" width="350" height="170" rx="10" class="lis"/>
+  <text x="770" y="458" class="h2">services · LLM &amp; MCP for runtimes</text><text x="1050" y="458" class="port" fill="#2563eb">:4102</text>
+  <text x="770" y="478" class="t">• apiKey strict (per-runtime key hashes,</text>
+  <text x="770" y="494" class="t">  metadata.client)</text>
+  <text x="770" y="514" class="t">• /v1/chat/completions, /v1/models</text>
+  <text x="770" y="532" class="t">• /mcp (federated tool servers)</text>
+  <text x="770" y="552" class="t">• standardAttributes: user ← x-end-user-id,</text>
+  <text x="770" y="568" class="t">  group ← x-agent-slug</text>
+  <text x="770" y="590" class="s">model "ollama/*" added in the UI</text>
+
+  <rect x="250" y="620" width="326" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="264" y="641" class="t">config.yaml ← base + agents/ + platform.yaml</text>
+  <text x="264" y="659" class="s">gen-gateway.py / gateway-config · hot reload</text>
+  <rect x="590" y="620" width="330" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="604" y="641" class="t">agw_data (SQLite): UI overlay + request logs</text>
+  <text x="604" y="659" class="s">storage / logging / cookie: applied at startup</text>
+
+  <!-- runtimes -->
+  <rect x="40" y="740" width="320" height="188" rx="10" class="rt"/>
+  <text x="56" y="764" class="h">Langflow AG-UI adapter</text>
+  <text x="56" y="782" class="port" fill="#0d9488">FastAPI · :8080 · stateless</text>
+  <text x="56" y="804" class="t">• normal flows → mode stream (tokens)</text>
+  <text x="56" y="822" class="t">• Human Input / tool approval → mode</text>
+  <text x="56" y="838" class="t">  background + GET /{job}/events</text>
+  <text x="56" y="856" class="t">• pause → RUN_FINISHED interrupt</text>
+  <text x="56" y="874" class="t">• resume[] → POST /{job}/resume</text>
+  <text x="56" y="892" class="t">• client ids, drops langflow.* events</text>
+  <text x="56" y="914" class="s">interrupt id = job + request + event id</text>
+
+  <rect x="380" y="740" width="420" height="188" rx="10" class="rt"/>
+  <text x="396" y="764" class="h">Langflow Runtime</text>
+  <text x="396" y="782" class="port" fill="#0d9488">1.12.3 · headless · :7880 (publish only)</text>
+  <text x="396" y="804" class="t">• runs flows published by publish.py (Workflow API v2)</text>
+  <text x="396" y="822" class="t">• end-user identity: X-End-User-Id (trusted from gateway)</text>
+  <text x="396" y="838" class="t">  → memory scoped &lt;user&gt;::&lt;thread&gt;</text>
+  <text x="396" y="856" class="t">• components: agentgateway Model, team tools</text>
+  <text x="396" y="874" class="t">• HITL: Human Input node, tool approval_actions</text>
+  <text x="396" y="892" class="t">• models via OPENAI_BASE_URL = agentgateway:4102</text>
+  <text x="396" y="914" class="s">agents: hitl-demo, invoice-monitor, …</text>
+
+  <rect x="820" y="740" width="300" height="188" rx="10" class="plan"/>
+  <text x="836" y="764" class="h">Code runtimes</text>
+  <text x="836" y="782" class="port" fill="#64748b">planned · runtime: agui</text>
+  <text x="836" y="804" class="t">• Pydantic AI (agent.to_ag_ui())</text>
+  <text x="836" y="822" class="t">• LangGraph (ag-ui-langgraph)</text>
+  <text x="836" y="840" class="t">• CrewAI (ag-ui-crewai)</text>
+  <text x="836" y="862" class="t">• standard AG-UI interrupts →</text>
+  <text x="836" y="878" class="t">  same portal HITL card</text>
+  <text x="836" y="900" class="s">models/tools via :4102 with headers</text>
+
+  <!-- build & publish -->
+  <rect x="1166" y="222" width="394" height="150" rx="10" class="dev"/>
+  <text x="1182" y="246" class="h">Langflow Builder</text>
+  <text x="1182" y="264" class="port" fill="#059669">:7870 · shared, visual editor</text>
+  <text x="1182" y="286" class="t">• build &amp; test flows in the playground</text>
+  <text x="1182" y="304" class="t">• Human Input nodes, tool Actions approval</text>
+  <text x="1182" y="322" class="t">• own DB (langflow_builder), builder gateway key</text>
+  <text x="1182" y="340" class="t">• no end-user mode (playground)</text>
+  <text x="1182" y="360" class="s">AKS: behind oauth2-proxy with the same IdP</text>
+
+  <rect x="1166" y="420" width="394" height="210" rx="10" class="dev"/>
+  <text x="1182" y="444" class="h">scripts/publish.py</text>
+  <text x="1182" y="462" class="port" fill="#059669">one command per agent · --all seeds a stack</text>
+  <text x="1182" y="486" class="t">1  export flow from the Builder (or --file)</text>
+  <text x="1182" y="506" class="t">2  connect an agentgateway Model to each Agent</text>
+  <text x="1182" y="526" class="t">3  write flows/&lt;slug&gt;.json + agents/&lt;slug&gt;.yaml</text>
+  <text x="1182" y="546" class="t">4  upsert flow into runtime (+ Builder) by API</text>
+  <text x="1182" y="566" class="t">5  regenerate gateway/config.yaml (hot reload)</text>
+  <text x="1182" y="592" class="s">helpers: langflow_lib.py · demos: make-*-demo.py</text>
+  <text x="1182" y="610" class="s">checks: e2e.py (15) · models.sh · smoke.sh</text>
+
+  <rect x="1166" y="660" width="394" height="268" rx="10" class="box"/>
+  <text x="1182" y="684" class="h">Git repo (agent-platform)</text>
+  <text x="1182" y="706" class="t">flows/&lt;slug&gt;.json  published flows</text>
+  <text x="1182" y="724" class="t">agents/&lt;slug&gt;.yaml  catalog + routes source</text>
+  <text x="1182" y="742" class="t">components/  Langflow custom components</text>
+  <text x="1182" y="760" class="t">gateway/base.yaml  listeners, auth, UI, logs</text>
+  <text x="1182" y="778" class="t">services/langflow-adapter  (unit-tested)</text>
+  <text x="1182" y="796" class="t">apps/portal  (Dockerfile, brands)</text>
+  <text x="1182" y="814" class="t">infra/  Keycloak realm, Postgres init</text>
+  <text x="1182" y="832" class="t">docker-compose.yml</text>
+  <text x="1182" y="856" class="s">never committed: .env, .secrets/, gateway/config.yaml</text>
+  <text x="1182" y="874" class="s">PR merge = publish (CI runs publish.py, planned P3)</text>
+  <text x="1182" y="900" class="s">docs/architecture.svg · docs/data-flow.svg</text>
+
+  <!-- data & backing -->
+  <rect x="40" y="984" width="300" height="152" rx="10" class="data"/>
+  <text x="56" y="1008" class="h">Postgres 17 :5440</text>
+  <text x="56" y="1030" class="t">• keycloak</text>
+  <text x="56" y="1048" class="t">• langflow_runtime (flows, jobs,</text>
+  <text x="56" y="1064" class="t">  messages, checkpoints)</text>
+  <text x="56" y="1082" class="t">• langflow_builder</text>
+  <text x="56" y="1100" class="t">• portal (P2: catalog, threads)</text>
+
+  <rect x="360" y="984" width="300" height="152" rx="10" class="data"/>
+  <text x="376" y="1008" class="h">Volumes</text>
+  <text x="376" y="1030" class="t">• agw_data: gateway overlay + logs</text>
+  <text x="376" y="1048" class="t">• pg_data: Postgres</text>
+  <text x="376" y="1066" class="t">• .secrets: runtime API key</text>
+
+  <rect x="680" y="984" width="220" height="152" rx="10" class="ext"/>
+  <text x="696" y="1008" class="h">Ollama</text>
+  <text x="696" y="1026" class="port" fill="#d97706">host.docker.internal:11434</text>
+  <text x="696" y="1048" class="t">• qwen3:8b (agents)</text>
+  <text x="696" y="1066" class="t">• nomic-embed-text</text>
+  <text x="696" y="1084" class="t">  (embeddings)</text>
+  <text x="696" y="1106" class="s">cloud LLMs: add in UI</text>
+
+  <rect x="920" y="984" width="214" height="152" rx="10" class="ext"/>
+  <text x="936" y="1008" class="h">Business system</text>
+  <text x="936" y="1026" class="port" fill="#d97706">host :8000</text>
+  <text x="936" y="1048" class="t">• REST / OData APIs (mock</text>
+  <text x="936" y="1064" class="t">  or live)</text>
+  <text x="936" y="1082" class="t">• monitoring, docs RAG</text>
+  <text x="936" y="1106" class="s">called by agent tools</text>
+
+  <rect x="1166" y="984" width="190" height="152" rx="10" class="plan"/>
+  <text x="1182" y="1008" class="h">MCP servers</text>
+  <text x="1182" y="1028" class="t">shared tools via</text>
+  <text x="1182" y="1046" class="t">:4102 /mcp</text>
+  <text x="1182" y="1066" class="s">planned</text>
+
+  <rect x="1370" y="984" width="190" height="152" rx="10" class="plan"/>
+  <text x="1386" y="1008" class="h">Observability</text>
+  <text x="1386" y="1028" class="t">Alloy → Loki,</text>
+  <text x="1386" y="1046" class="t">Prometheus, Tempo,</text>
+  <text x="1386" y="1064" class="t">Grafana (OIDC)</text>
+  <text x="1386" y="1084" class="s">planned (O1–O6)</text>
+
+  <!-- arrows -->
+  <path d="M450,164 L450,220" class="a-blue"/>
+  <path d="M300,300 L272,300" class="a-purple"/>
+  <text x="274" y="292" class="lbl" fill="#7c3aed">OIDC</text>
+  <path d="M888,296 L862,296" class="a-gray"/>
+  <path d="M500,368 L500,384 L226,384 L226,434" class="a-blue"/>
+  <text x="290" y="380" class="lbl" fill="#2563eb">AG-UI + Bearer JWT · SSE back</text>
+  <path d="M120,368 L120,434" class="a-purple"/>
+  <text x="126" y="384" class="lbl" fill="#7c3aed">JWKS</text>
+  <path d="M770,164 L770,190 L1140,190 L1140,412 L640,412 L640,434" class="a-purple"/>
+  <text x="900" y="186" class="lbl" fill="#7c3aed">browser login, agent-admin</text>
+  <path d="M150,606 L150,738" class="a-blue"/>
+  <text x="158" y="732" class="lbl" fill="#2563eb">/run · flow id, user, key</text>
+  <path d="M220,606 L220,700 L970,700 L970,738" class="a-gray"/>
+  <text x="226" y="694" class="lbl" fill="#64748b">runtime: agui</text>
+  <path d="M360,830 L378,830" class="a-blue"/>
+  <path d="M760,740 L760,700 L1010,700 L1010,608" class="a-orange"/>
+  <text x="780" y="696" class="lbl" fill="#d97706">LLM calls + runtime key + user/agent/thread headers</text>
+  <path d="M1104,520 L1140,520 L1140,950 L790,950 L790,982" class="a-orange"/>
+  <path d="M700,928 L700,960 L1010,960 L1010,982" class="a-orange"/>
+  <text x="850" y="956" class="lbl" fill="#d97706">tools</text>
+  <path d="M420,928 L420,946 L190,946 L190,982" class="a-gray"/>
+  <path d="M1360,164 L1360,220" class="a-green"/>
+  <path d="M1360,372 L1360,418" class="a-green"/>
+  <text x="1368" y="398" class="lbl" fill="#059669">export</text>
+  <path d="M1360,630 L1360,658" class="a-green"/>
+  <path d="M1166,600 L1150,600 L1150,720 L600,720 L600,738" class="a-green"/>
+  <text x="1000" y="716" class="lbl" fill="#059669">upsert flow (API)</text>
+  <path d="M1166,560 L1124,560" class="a-green"/>
+  <text x="1126" y="552" class="lbl" fill="#059669">routes</text>
+
+  <!-- legend -->
+  <g transform="translate(40,1170)">
+    <text x="0" y="12" class="s" font-weight="700">LEGEND</text>
+    <line x1="70" y1="8" x2="110" y2="8" class="a-blue"/><text x="118" y="12" class="s">user request / AG-UI stream</text>
+    <line x1="300" y1="8" x2="340" y2="8" class="a-purple"/><text x="348" y="12" class="s">identity (OIDC, JWT, JWKS)</text>
+    <line x1="530" y1="8" x2="570" y2="8" class="a-orange"/><text x="578" y="12" class="s">model / tool calls</text>
+    <line x1="720" y1="8" x2="760" y2="8" class="a-green"/><text x="768" y="12" class="s">build &amp; publish</text>
+    <line x1="890" y1="8" x2="930" y2="8" class="a-gray"/><text x="938" y="12" class="s">reads / planned</text>
+    <rect x="1060" y="0" width="28" height="16" rx="3" class="plan"/><text x="1096" y="12" class="s">planned component</text>
+    <text x="0" y="40" class="s">Ports are local (127.0.0.1). In AKS: only :3100 (and the IdP) behind the ingress; :4101 internal; :4102, adapter and runtime cluster-internal (network policy).</text>
+  </g>
+</svg>

@@ -1,0 +1,218 @@
+# Agent platform: local stack (P0).
+#
+#   portal (host, npm run dev :3100) ─► agentgateway :4100 ─► langflow-runtime :7880 (AG-UI)
+#                                         │ OIDC JWT check (keycloak :8180, any OIDC IdP works)
+#   developers ─► langflow-builder :7870 (visual editor)
+#
+# Ollama is not part of this stack: the host one on :11434 is reused.
+# First run: ./scripts/init-env.sh && docker compose up -d && ./scripts/bootstrap-runtime-key.sh
+#
+# Agents are not part of this repo. Their repos can add what their flows need locally (components for the
+# Builder, env vars, volumes) with a compose file listed in COMPOSE_FILE in .env, e.g.
+#   COMPOSE_FILE=docker-compose.yml:../my-agents/compose.platform.yaml
+
+name: agent-platform
+
+x-langflow-common: &langflow-common
+  image: langflowai/langflow:1.12.3
+  extra_hosts:
+    - "host.docker.internal:host-gateway"   # host Ollama :11434 and services agents call on the host
+  depends_on:
+    postgres: {condition: service_healthy}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports: ["127.0.0.1:5440:5432"]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform"]
+      interval: 5s
+      retries: 20
+
+  # Local OIDC provider. Stands in for whatever IdP an environment uses (Entra ID, Okta, ...):
+  # the platform only relies on standard OIDC discovery/JWKS and a `roles` array claim.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: platform
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Same issuer for the browser and for containers (gateway fetches JWKS on keycloak:8080)
+      KC_HOSTNAME: ${IDP_URL:-http://localhost:8180}
+      KC_PROXY_HEADERS: xforwarded   # behind tailscale serve (HTTPS) when shared
+      KC_HOSTNAME_ADMIN: http://localhost:8180   # admin console on this machine only, also when shared
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    ports: ["127.0.0.1:8180:8080"]
+    volumes:
+      - ./infra/keycloak/realm-agents.json:/opt/keycloak/data/import/realm-agents.json:ro
+    healthcheck:   # image has no curl: probe the management port with bash
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 5s
+      retries: 40
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  # Visual builder for developers. Locally single-user (auto login); the shared instance in AKS sits behind
+  # oauth2-proxy with the same OIDC IdP.
+  langflow-builder:
+    <<: *langflow-common
+    environment:
+      LANGFLOW_DATABASE_URL: postgresql://platform:${POSTGRES_PASSWORD}@postgres:5432/langflow_builder
+      LANGFLOW_SECRET_KEY: ${LANGFLOW_BUILDER_SECRET_KEY}
+      LANGFLOW_AUTO_LOGIN: "true"
+      LANGFLOW_DO_NOT_TRACK: "true"
+      LANGFLOW_COMPONENTS_PATH: /app/components
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # Models go through agentgateway (services gateway): the agentgateway Model component uses these;
+      # provider keys live only in the gateway.
+      OPENAI_BASE_URL: http://agentgateway:4102/v1
+      OPENAI_API_KEY: ${LANGFLOW_BUILDER_GATEWAY_KEY}
+      LANGFLOW_VARIABLES_TO_GET_FROM_ENVIRONMENT: OPENAI_BASE_URL,OPENAI_API_KEY,OLLAMA_BASE_URL
+      LANGFLOW_SSRF_ALLOWED_HOSTS: host.docker.internal,agentgateway
+    ports: ["127.0.0.1:7870:7860"]
+    volumes:
+      - ./components/agentgateway:/app/components/agentgateway:ro   # agentgateway Model component
+
+  # Login in front of the Builder (which has no login of its own locally): OIDC with the same IdP, only roles
+  # agent-developer or agent-admin get in. :7871 is the Builder for others (scripts/share.sh); :7870 stays
+  # loopback-only for the machine owner.
+  builder-login:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_UPSTREAMS: http://langflow-builder:7860
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_CLIENT_ID: langflow-builder
+      OAUTH2_PROXY_CLIENT_SECRET: dev-only-langflow-builder-secret   # local realm only
+      OAUTH2_PROXY_COOKIE_SECRET: ${BUILDER_LOGIN_COOKIE_SECRET}
+      OAUTH2_PROXY_COOKIE_NAME: _builder_login
+      OAUTH2_PROXY_COOKIE_SECURE: "false"   # also served over plain http on localhost
+      OAUTH2_PROXY_REDIRECT_URL: ${BUILDER_URL:-http://localhost:7871}/oauth2/callback
+      # Browser endpoints on the public IdP URL, token/JWKS calls over the Docker network (no discovery: the
+      # public URL is not reachable from inside the container)
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
+      OAUTH2_PROXY_OIDC_ISSUER_URL: ${IDP_URL:-http://localhost:8180}/realms/agents
+      OAUTH2_PROXY_LOGIN_URL: ${IDP_URL:-http://localhost:8180}/realms/agents/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:8080/realms/agents/protocol/openid-connect/token
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:8080/realms/agents/protocol/openid-connect/certs
+      OAUTH2_PROXY_SCOPE: openid
+      OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_OIDC_GROUPS_CLAIM: roles
+      OAUTH2_PROXY_ALLOWED_GROUPS: agent-developer,agent-admin
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+    ports: ["127.0.0.1:7871:4180"]
+    depends_on:
+      keycloak: {condition: service_healthy}
+      langflow-builder: {condition: service_started}
+    restart: unless-stopped
+
+  # Headless runtime: runs flows deployed with scripts/publish.py; reachable only through the gateway.
+  langflow-runtime:
+    <<: *langflow-common
+    environment:
+      LANGFLOW_DATABASE_URL: postgresql://platform:${POSTGRES_PASSWORD}@postgres:5432/langflow_runtime
+      LANGFLOW_SECRET_KEY: ${LANGFLOW_RUNTIME_SECRET_KEY}
+      LANGFLOW_BACKEND_ONLY: "true"
+      LANGFLOW_AUTO_LOGIN: "false"
+      LANGFLOW_SUPERUSER: runtime-admin
+      LANGFLOW_SUPERUSER_PASSWORD: ${LANGFLOW_RUNTIME_ADMIN_PASSWORD}
+      LANGFLOW_DO_NOT_TRACK: "true"
+      LANGFLOW_COMPONENTS_PATH: /app/components
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      # Models go through agentgateway (services gateway): the agentgateway Model component uses these;
+      # provider keys live only in the gateway.
+      OPENAI_BASE_URL: http://agentgateway:4102/v1
+      OPENAI_API_KEY: ${LANGFLOW_RUNTIME_GATEWAY_KEY}
+      # End users: the gateway (the only caller, after validating the user's JWT) sends X-End-User-Id;
+      # Langflow scopes memory per (end user, thread) and the agentgateway Model forwards it on model calls.
+      LANGFLOW_SERVING_END_USER_HEADER: X-End-User-Id
+      LANGFLOW_SERVING_TRUST_PROXY_HEADERS: "true"
+      LANGFLOW_VARIABLES_TO_GET_FROM_ENVIRONMENT: OPENAI_BASE_URL,OPENAI_API_KEY,OLLAMA_BASE_URL
+      LANGFLOW_SSRF_ALLOWED_HOSTS: host.docker.internal,agentgateway
+    ports: ["127.0.0.1:7880:7860"]   # published for bootstrap/debugging only; clients go through the gateway
+    volumes:
+      - ./components/agentgateway:/app/components/agentgateway:ro   # agentgateway Model component
+
+  # Portal (Next.js): login, agent catalog, chat. Talks to the gateway server-side; the browser only sees :3100.
+  portal:
+    build: ./apps/portal
+    environment:
+      AUTH_SECRET: ${PORTAL_AUTH_SECRET}
+      AUTH_URL: ${PORTAL_URL:-http://localhost:3100}
+      AUTH_TRUST_HOST: "true"
+      # generic OIDC; the issuer is the public URL (browser + token iss), reached from here via the internal one
+      OIDC_ISSUER: ${IDP_URL:-http://localhost:8180}/realms/agents
+      OIDC_INTERNAL_ISSUER: http://keycloak:8080/realms/agents
+      OIDC_CLIENT_ID: agent-portal
+      OIDC_CLIENT_SECRET: dev-only-agent-portal-secret
+      OIDC_SCOPE: openid
+      GATEWAY_URL: http://agentgateway:4100
+      BRAND: ${BRAND:-default}
+      AGENTS_DIR: /config/agents
+      PLATFORM_FILE: /config/platform.yaml
+    volumes:
+      - ./catalog:/config/agents:ro   # deployed agents (scripts/publish.py deploy)
+      - ./platform.yaml:/config/platform.yaml:ro
+    ports: ["127.0.0.1:3100:3100"]
+    depends_on:
+      keycloak: {condition: service_healthy}
+      agentgateway: {condition: service_started}
+    restart: unless-stopped
+
+  # Standard AG-UI (incl. human-in-the-loop interrupts) in front of the Langflow runtime. Stateless; the gateway
+  # passes the runtime key and end user through. Not published: only the gateway calls it.
+  langflow-adapter:
+    build: ./services/langflow-adapter
+    environment:
+      LANGFLOW_URL: http://langflow-runtime:7860
+    depends_on: [langflow-runtime]
+    restart: unless-stopped
+
+  # gateway/config.yaml is generated (gateway/base.yaml + catalog/*/agent.yaml + platform.yaml + key hashes from .env),
+  # never committed. Regenerated here on every start; scripts/publish.py regenerates it on changes (hot reload).
+  gateway-config:
+    image: python:3.12-slim
+    working_dir: /work
+    command: ["sh", "-c", "pip install -q --disable-pip-version-check --root-user-action=ignore pyyaml==6.0.2 && python scripts/gen-gateway.py"]
+    volumes:
+      - .:/work
+
+  # agentgateway runs as uid 65532; give it the overlay volume before it starts
+  agentgateway-data-init:
+    image: busybox:1.36
+    command: ["chown", "-R", "65532:65532", "/data"]
+    volumes:
+      - agw_data:/data
+
+  agentgateway:
+    image: cr.agentgateway.dev/agentgateway:v1.6.0
+    command: ["-f", "/config/config.yaml"]
+    environment:
+      OIDC_COOKIE_SECRET: ${AGENTGATEWAY_OIDC_COOKIE_SECRET}   # encrypts the admin UI login session cookie
+    ports: ["127.0.0.1:4100:4100", "127.0.0.1:4101:4101", "127.0.0.1:4102:4102"]   # agent API, admin UI, runtime services
+    volumes:
+      - ./gateway:/config:ro
+      - ./.secrets:/secrets:ro
+      - agw_data:/data   # UI-managed overlay (hybrid storage)
+    restart: unless-stopped   # JWKS is fetched at startup; retry if the IdP is briefly unavailable
+    depends_on:
+      keycloak: {condition: service_healthy}
+      langflow-runtime: {condition: service_started}
+      agentgateway-data-init: {condition: service_completed_successfully}
+      gateway-config: {condition: service_completed_successfully}
+
+volumes:
+  pg_data:
+  agw_data:
