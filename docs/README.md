@@ -8,6 +8,10 @@ Three views of the agent platform, each in three formats:
 | Architecture | services, ports, listeners, stores, publish path | [architecture.svg](architecture.svg) | [architecture.tldr](architecture.tldr) | [architecture.mmd](architecture.mmd) |
 | Data flow | sign-in, agent run, human in the loop, control plane, step by step | [data-flow.svg](data-flow.svg) | [data-flow.tldr](data-flow.tldr) | [data-flow.mmd](data-flow.mmd) |
 
+**Animated data flow:** [data-flow-live.html](data-flow-live.html) replays one agent run (ask → gateway check →
+agent run → human approval → stream back) with stage tabs, pause and a light/dark toggle; open it in a browser.
+`data-flow-live-light.gif` and `data-flow-live-dark.gif` are exports of it, used in the main README.
+
 Open a `.tldr` file at tldraw.com (menu → Open file) or in the tldraw desktop / VS Code extension. The tldraw versions
 use automatic elbow arrows; drag an arrow to tidy a route, the SVGs are the hand-checked layout.
 
@@ -17,6 +21,12 @@ use automatic elbow arrows; drag an arrow to tidy a route, the SVGs are the hand
 python3 docs/make-components.py docs/components.svg docs/diagram-specs/components.json
 python3 docs/make-data-flow.py  docs/data-flow.svg  docs/diagram-specs/data-flow.json
 # architecture.svg is hand-written; its tldraw layout is docs/diagram-specs/architecture.json
+
+# GIFs of the animated data flow (needs Playwright in the current folder, ffmpeg and gifski)
+for t in light dark; do
+  node docs/export-animation.mjs docs/data-flow-live.html /tmp/gif --theme $t --fps 12 --width 900 --gif
+  cp /tmp/gif/data-flow-live-$t.gif docs/
+done
 
 # .tldr from the layout specs (validated against tldraw's schema)
 npm i --prefix /tmp/tldr @tldraw/tlschema@5.5.2 @tldraw/store@5.5.2 @tldraw/utils@5.5.2

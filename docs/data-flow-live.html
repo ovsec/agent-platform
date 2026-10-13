@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Flow Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Minimal-tech live flow: one window, stage tabs, an SVG that replays a 24s loop, a log and a status line.
+   Light/dark from tokens. Two hues only: rose = human request + the one thing to notice, cyan = machine/system. */
+:root{
+  --ink:#18181b; --muted:#5f5f6b; --bg:#f4f4f6; --surface:#ffffff;
+  --acc:#e11d48; --sec:#0d9488;
+  --sans:"Space Grotesk", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#f4f4f8; --muted:#a1a1b5; --bg:#0b0b0d; --surface:#121214; --acc:#fb7185; --sec:#2dd4bf; color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --ink:#f4f4f8; --muted:#a1a1b5; --bg:#0b0b0d; --surface:#121214; --acc:#fb7185; --sec:#2dd4bf; color-scheme:dark; }
+:root{
+  --line:color-mix(in srgb,var(--ink) 16%,var(--surface));
+  --strong:color-mix(in srgb,var(--ink) 48%,var(--surface));
+  --accFill:color-mix(in srgb,var(--acc) 9%,var(--surface));
+  --secFill:color-mix(in srgb,var(--sec) 9%,var(--surface));
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;padding-inline:16px;padding-block:24px}
+.win{max-width:1000px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.chrome{display:flex;align-items:center;gap:7px;padding:10px 14px;border-bottom:1px solid var(--line);position:relative}
+.chrome i{width:10px;height:10px;border-radius:50%;display:block;border:1.2px solid var(--strong)}
+.chrome .path{position:absolute;left:0;right:0;text-align:center;color:var(--muted);font:11.5px var(--mono);pointer-events:none}
+.head{padding:18px 18px 4px}
+.eb{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:7px;border-bottom:1px solid var(--strong);display:inline-block;min-width:240px}
+.head h1{font-size:22px;font-weight:600;margin:10px 0 0;letter-spacing:-.01em}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 18px 4px}
+.tabs button{font:11px var(--mono);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:3px;padding:5px 10px;cursor:pointer}
+.tabs button .n{color:var(--acc);margin-right:6px}
+.tabs button:hover{color:var(--ink);border-color:var(--strong)}
+.tabs button[aria-current="true"]{color:var(--ink);border-color:var(--ink);box-shadow:inset 0 0 0 .5px var(--ink)}
+.tabs button:focus-visible{outline:2px solid var(--sec);outline-offset:2px}
+.tabs .arr{color:var(--strong);font-family:var(--mono)}
+.tabs .spacer{flex:1}
+.stage{overflow-x:auto;padding:6px 10px 0}
+svg{display:block;width:100%;min-width:720px;height:auto}
+.frame{fill:var(--surface);stroke:var(--line);stroke-width:1;transition:stroke .2s,stroke-width .2s,fill .2s}
+.bx.done .frame{stroke:var(--strong)}
+.bx.on .frame{stroke:var(--c,var(--ink));stroke-width:2.2}
+.bx.fail .frame{stroke:var(--acc);stroke-width:2.2;fill:var(--accFill)}
+.tt{fill:var(--ink);font:600 14px var(--sans)}
+.tl{fill:var(--ink);font:600 12.5px var(--sans)}
+.ts{fill:var(--muted);font:11px var(--mono)}
+.tn{fill:var(--muted);font:10.5px var(--mono);letter-spacing:.08em}
+.st{fill:var(--muted);font:600 11px var(--mono)}
+.wire{fill:none;stroke:var(--strong);stroke-width:1.2;transition:stroke .2s}
+.wire.side{stroke:var(--line);stroke-dasharray:2 4}
+.wire.hot{stroke:var(--wc);stroke-width:1.6;stroke-dasharray:4 4;animation:flow .6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-16}}
+.hk .hbg{fill:transparent;stroke:transparent;transition:all .2s}
+.hk.on .hbg{fill:var(--secFill);stroke:var(--sec)}
+.hk.on .hname{fill:var(--sec)}
+.log{padding:12px 18px 4px;font:12px var(--mono)}
+.log .lh{color:var(--muted);font:600 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+#lines{display:grid;gap:3px;min-height:calc(7 * 20px)}
+.ln{display:grid;grid-template-columns:62px 80px minmax(0,1fr) auto;gap:10px;align-items:baseline;line-height:17px;font-variant-numeric:tabular-nums;animation:in .3s ease-out}
+.ln .tm2{color:var(--strong)}.ln .msg{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ln .r{text-align:right;white-space:nowrap}
+.ln:last-child .tm2{color:var(--ink);font-weight:600}
+@keyframes in{from{opacity:0;transform:translateY(4px)}}
+.prompt{padding:9px 18px 4px;font:12px var(--mono);border-top:1px solid var(--line);margin-top:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.prompt .p{color:var(--sec)}.prompt .blk{display:inline-block;width:7px;height:13px;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.status{display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 18px 14px;font:11px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.status b{font-weight:500}
+.k-i{color:var(--ink)}.k-m{color:var(--muted)}.k-a{color:var(--acc)}.k-s{color:var(--sec)}
+.note{max-width:1000px;margin:14px auto 0;color:var(--muted);font:11px var(--mono);text-align:center}
+@media (prefers-reduced-motion: reduce){.wire.hot,.ln,.prompt .blk{animation:none}}
+.export .wire.hot,.export .ln,.export .prompt .blk{animation:none}
+.export .frame,.export .hbg,.export .wire{transition:none}
+</style>
+
+<div class="win" id="win">
+  <div class="chrome"><i></i><i></i><i></i><span class="path">~/agent-platform · zsh · <span id="tclock">T+0.0s</span></span></div>
+  <div class="head">
+    <div class="eb">Agent platform · data flow</div>
+    <h1>One agent run, end to end</h1>
+  </div>
+  <nav class="tabs" aria-label="Stages">
+    <button id="tab0"><span class="n">01</span>ask</button><span class="arr">→</span>
+    <button id="tab1"><span class="n">02</span>gateway check</button><span class="arr">→</span>
+    <button id="tab2"><span class="n">03</span>agent run</button><span class="arr">→</span>
+    <button id="tab3"><span class="n">04</span>human ok</button><span class="arr">→</span>
+    <button id="tab4"><span class="n">05</span>stream back</button>
+    <span class="spacer"></span>
+    <button id="theme" aria-label="Toggle light or dark theme">◐ theme</button>
+    <button id="pause" aria-pressed="false">❚❚ pause</button>
+  </nav>
+
+  <div class="stage">
+  <svg viewBox="0 0 960 652" role="img" aria-label="Animated data flow: a user asks the invoice-monitor agent a question in the portal; agentgateway checks the token and roles, audits and routes to the Langflow adapter and runtime; the agent loads memory, plans with the LLM through the gateway and calls the ERP API; a bad filter fails, the LLM fixes it and the call succeeds; the agent then proposes re-posting the failed invoices, the tool call pauses as an AG-UI interrupt, the user approves in the portal, the run resumes through the gateway, the retry runs and AG-UI events stream back to the portal.">
+    <defs>
+      <marker id="m1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="context-stroke" stroke-width="1.5"/></marker>
+    </defs>
+
+    <!-- wires -->
+    <path id="wH1" class="wire side" d="M250 138 H270 V55 H433" style="--wc:var(--sec)"/>
+    <path id="wH2" class="wire side" d="M250 256 H270 V180 H288" style="--wc:var(--sec)"/>
+    <path id="wH3" class="wire side" d="M250 374 H270 V420 H288" style="--wc:var(--sec)"/>
+    <path id="wH4" class="wire side" d="M250 492 H270 V552 H438" style="--wc:var(--sec)"/>
+    <path id="wPC" class="wire" d="M615 90 V108" marker-end="url(#m1)" style="--wc:var(--acc)"/>
+    <path id="wCA" class="wire" d="M615 250 V268" marker-end="url(#m1)" style="--wc:var(--acc)"/>
+    <path id="wA1" class="wire" d="M615 326 V343 H392 V358" marker-end="url(#m1)" style="--wc:var(--sec)"/>
+    <path id="wA2" class="wire" d="M615 326 V358" marker-end="url(#m1)" style="--wc:var(--sec)"/>
+    <path id="wA3" class="wire" d="M615 326 V343 H838 V358" marker-end="url(#m1)" style="--wc:var(--sec)"/>
+    <path id="wInt" class="wire side" d="M940 284 H956 V55 H797" marker-end="url(#m1)" style="--wc:var(--acc)"/>
+    <path id="wBack" class="wire side" d="M940 420 H952 V298 H942" style="--wc:var(--acc)"/>
+    <path id="wT1" class="wire" d="M392 480 V500 H615 V518" marker-end="url(#m1)" style="--wc:var(--sec)"/>
+    <path id="wT2" class="wire" d="M615 480 V518" marker-end="url(#m1)" style="--wc:var(--sec)"/>
+    <path id="wT3" class="wire" d="M838 480 V500 H615 V518" marker-end="url(#m1)" style="--wc:var(--sec)"/>
+
+    <!-- side panel: governance -->
+    <g class="bx" id="bSide" style="--c:var(--sec)">
+      <rect class="frame" x="20" y="20" width="230" height="584" rx="3"/>
+      <text class="tn" x="36" y="44">GOVERNANCE</text>
+      <line x1="36" y1="54" x2="234" y2="54" stroke="var(--strong)"/>
+      <text class="ts" x="36" y="72">cuts across every run</text>
+      <g class="hk" id="hk1"><rect class="hbg" x="30" y="88" width="210" height="100" rx="3"/>
+        <text class="tn" x="42" y="110">01</text><text class="tt hname" x="68" y="111">OIDC · Keycloak</text>
+        <text class="ts" x="42" y="134">token with sub + roles</text>
+        <text class="ts" x="42" y="152">PKCE · encrypted cookie</text>
+        <text class="tn" x="42" y="174" id="hk1c">fired 0×</text></g>
+      <g class="hk" id="hk2"><rect class="hbg" x="30" y="206" width="210" height="100" rx="3"/>
+        <text class="tn" x="42" y="228">02</text><text class="tt hname" x="68" y="229">Audit log</text>
+        <text class="ts" x="42" y="252">user · agent · thread</text>
+        <text class="ts" x="42" y="270">every /agents call</text>
+        <text class="tn" x="42" y="292" id="hk2c">fired 0×</text></g>
+      <g class="hk" id="hk3"><rect class="hbg" x="30" y="324" width="210" height="100" rx="3"/>
+        <text class="tn" x="42" y="346">03</text><text class="tt hname" x="68" y="347">Services key</text>
+        <text class="ts" x="42" y="370">runtime key + end user</text>
+        <text class="ts" x="42" y="388">models only via :4102</text>
+        <text class="tn" x="42" y="410" id="hk3c">fired 0×</text></g>
+      <g class="hk" id="hk4"><rect class="hbg" x="30" y="442" width="210" height="100" rx="3"/>
+        <text class="tn" x="42" y="464">04</text><text class="tt hname" x="68" y="465">Event scrub</text>
+        <text class="ts" x="42" y="488">langflow.* dropped</text>
+        <text class="ts" x="42" y="506">portal sees pure AG-UI</text>
+        <text class="tn" x="42" y="528" id="hk4c">fired 0×</text></g>
+      <line x1="36" y1="560" x2="234" y2="560" stroke="var(--line)"/>
+      <text class="ts" x="36" y="582">denied (403)</text><text class="st" x="234" y="582" text-anchor="end" style="fill:var(--sec)">0</text>
+    </g>
+
+    <!-- entry: the human request (rose) -->
+    <g class="bx" id="bEntry" style="--c:var(--acc)">
+      <rect class="frame" x="435" y="20" width="360" height="70" rx="3"/>
+      <text x="451" y="47" class="tt"><tspan fill="var(--acc)">alice ›</tspan> <tspan id="typed"></tspan><tspan id="caret">▍</tspan></text>
+      <text class="ts" x="451" y="73">portal :3100 · invoice-monitor · thread 7c1e</text>
+      <text class="tn" x="779" y="47" text-anchor="end">UI</text>
+    </g>
+
+    <!-- human decision: the approval card replaces the entry box while the run is paused -->
+    <g id="card" opacity="0">
+      <rect x="435" y="20" width="360" height="70" rx="3" fill="var(--accFill)" stroke="var(--acc)" stroke-width="2.2"/>
+      <text class="tn" x="451" y="40" style="fill:var(--acc)">HUMAN · interrupt</text>
+      <text class="tt" x="451" y="60" style="font-size:13px">Run make_api_request? re-post 3</text>
+      <rect id="approve" x="451" y="66" width="66" height="18" rx="3" fill="var(--acc)"/>
+      <text x="484" y="79" text-anchor="middle" class="st" style="fill:var(--surface)" id="approveT">Approve</text>
+      <rect x="523" y="66" width="58" height="18" rx="3" fill="none" stroke="var(--strong)"/>
+      <text x="552" y="79" text-anchor="middle" class="st" style="fill:var(--ink)">Reject</text>
+      <text class="ts" x="779" y="79" text-anchor="end">job 4f1a · req 2</text>
+      <circle id="ring" cx="484" cy="75" r="0" fill="none" stroke="var(--acc)" stroke-width="2" opacity="0"/>
+    </g>
+
+    <!-- shared layer: gateway -->
+    <g class="bx" id="bGw">
+      <rect class="frame" x="290" y="110" width="650" height="140" rx="3"/>
+      <text class="tn" x="306" y="134">02</text><text class="tt" x="330" y="135">agentgateway :4100</text>
+      <text class="ts" x="490" y="134">POST /agents/invoice-monitor/run</text>
+      <text class="tn" x="924" y="134" text-anchor="end">GATEWAY · <tspan id="gwMs">0.0</tspan> ms</text>
+      <line x1="306" y1="146" x2="924" y2="146" stroke="var(--line)"/>
+      <text class="tl" x="306" y="168">JWT · JWKS</text>
+      <text class="tl" x="306" y="190">CEL roles</text>
+      <text class="tl" x="306" y="212">route</text>
+      <g id="barC1"></g><g id="barC2"></g><g id="barC3"></g>
+      <text class="ts" x="924" y="168" text-anchor="end" id="vC1">—</text>
+      <text class="ts" x="924" y="190" text-anchor="end" id="vC2">—</text>
+      <text class="ts" x="924" y="212" text-anchor="end" id="vC3">—</text>
+      <text class="ts" x="306" y="238">user token stops here · x-end-user-id: alice</text>
+      <text class="ts" x="924" y="238" text-anchor="end">routes hot-reload</text>
+    </g>
+
+    <!-- orchestrator -->
+    <g class="bx" id="bOrch">
+      <rect class="frame" x="290" y="270" width="650" height="56" rx="3"/>
+      <text class="tn" x="306" y="294">03</text><text class="tt" x="330" y="295">Langflow adapter → runtime</text>
+      <text class="ts" x="306" y="315">AG-UI ↔ /api/v2/workflows · stream mode · session 7c1e</text>
+      <text class="st" x="924" y="294" text-anchor="end" id="turn">idle</text>
+      <text class="ts" x="924" y="315" text-anchor="end" id="evs">events: 0</text>
+    </g>
+
+    <!-- workers -->
+    <g class="bx" id="bT1">
+      <rect class="frame" x="290" y="360" width="205" height="120" rx="3"/>
+      <text class="tn" x="304" y="380">A</text><text class="tn" x="481" y="380" text-anchor="end">MODEL</text>
+      <text class="tt" x="392" y="384" text-anchor="middle">LLM · :4102</text>
+      <text class="ts" x="392" y="402" text-anchor="middle">ollama/qwen3:8b</text>
+      <g id="barT1"></g>
+      <text class="ts" x="392" y="444" text-anchor="middle">plans, picks the tool</text>
+      <text class="st" x="392" y="466" text-anchor="middle" id="sT1">[ standby ]</text>
+    </g>
+    <g class="bx" id="bT2">
+      <rect class="frame" x="512" y="360" width="205" height="120" rx="3"/>
+      <text class="tn" x="526" y="380">B</text><text class="tn" x="703" y="380" text-anchor="end">STATE</text>
+      <text class="tt" x="615" y="384" text-anchor="middle">Memory</text>
+      <text class="ts" x="615" y="402" text-anchor="middle">alice::7c1e</text>
+      <g id="barT2"></g>
+      <text class="ts" x="615" y="444" text-anchor="middle">scoped user::thread</text>
+      <text class="st" x="615" y="466" text-anchor="middle" id="sT2">[ standby ]</text>
+    </g>
+    <g class="bx" id="bT3">
+      <rect class="frame" x="735" y="360" width="205" height="120" rx="3"/>
+      <text class="tn" x="749" y="380">C</text><text class="tn" x="926" y="380" text-anchor="end">TOOL</text>
+      <text class="tt" x="838" y="384" text-anchor="middle">ERP API</text>
+      <text class="ts" x="838" y="402" text-anchor="middle">make_api_request</text>
+      <g id="barT3"></g>
+      <text class="ts" x="838" y="444" text-anchor="middle">real data, not guesses</text>
+      <text class="st" x="838" y="466" text-anchor="middle" id="sT3">[ standby ]</text>
+    </g>
+
+    <!-- exit -->
+    <g class="bx" id="bExit" style="--c:var(--sec)">
+      <rect class="frame" x="440" y="520" width="350" height="64" rx="3"/>
+      <text class="tn" x="456" y="540">04</text>
+      <text class="tt" x="615" y="545" text-anchor="middle">AG-UI SSE → portal</text>
+      <text class="ts" x="615" y="568" text-anchor="middle" id="sExit">stand by · waiting on the agent</text>
+    </g>
+
+    <text x="615" y="624" text-anchor="middle" class="tt" style="font-weight:500;fill:var(--muted)">One <tspan fill="var(--acc)" font-weight="600">front door</tspan>. Every call <tspan fill="var(--sec)" font-weight="600">checked</tspan>. Runtimes swap, the contract stays.</text>
+    <text x="940" y="646" text-anchor="end" class="tn" style="letter-spacing:0">abhisheksaha.dev</text>
+
+    <g id="dots"></g>
+  </svg>
+  </div>
+
+  <div class="log">
+    <div class="lh">Gateway + adapter log</div>
+    <div id="lines"></div>
+  </div>
+  <div class="prompt"><span class="p">~/agent-platform $</span> docker compose logs <span class="k-m">-f</span> agentgateway langflow-adapter <span class="blk"></span></div>
+  <div class="status" id="status"></div>
+</div>
+<p class="note">Illustrative replay of one agent run (ids, counts and timings are made up). The approval is the tool gate of invoice-monitor-approval (approval_actions), mapped to a standard AG-UI interrupt. Click a stage to jump, or pause.</p>
+
+<script>
+(() => {
+  const L = 32, STAGES = [0, 3.5, 8, 18, 25.4], SN = ["ask","gateway check","agent run","human ok","stream back"];
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+  const c01 = x => Math.max(0, Math.min(1, x));
+  const seg = (t,a,b) => c01((t-a)/(b-a));
+  const win = (t,a,b) => t >= a && t < b;
+  const pick = (a,b) => a>0 && a<1 ? a : b;
+  const ACC = "var(--acc)", SEC = "var(--sec)", INK = "var(--ink)", MUT = "var(--muted)", STR = "var(--strong)";
+
+  // theme: ?theme=dark|light, else the OS; the button flips it
+  const q = new URLSearchParams(location.search);
+  const root = document.documentElement;
+  if (q.get("theme")) root.dataset.theme = q.get("theme");
+  $("theme").addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+  });
+
+  // bars: cells fill in --strong while running, then take the result colour (cyan ok, rose failed)
+  function mkBar(g, x, y, n, w, h, gap){
+    const out=[]; for(let i=0;i<n;i++){const r=document.createElementNS(NS,"rect");
+      r.setAttribute("x",x+i*(w+gap)); r.setAttribute("y",y); r.setAttribute("width",w); r.setAttribute("height",h); r.setAttribute("rx",1.5);
+      r.setAttribute("fill","var(--line)"); $(g).appendChild(r); out.push(r);} return out;
+  }
+  function setBar(cells, p, done, running=STR){ const k = Math.round(p*cells.length), col = p>=1 ? done : running;
+    cells.forEach((r,i)=>{ const on=i<k; r.setAttribute("fill", on?col:"var(--line)"); r.setAttribute("opacity", on && i===k-1 && p<1 ? .6 : 1); }); }
+  const bars = {
+    c1: mkBar("barC1",440,158,14,22,11,4), c2: mkBar("barC2",440,180,14,22,11,4), c3: mkBar("barC3",440,202,14,22,11,4),
+    t1: mkBar("barT1",307,413,10,14,11,3.2), t2: mkBar("barT2",529,413,10,14,11,3.2), t3: mkBar("barT3",752,413,10,14,11,3.2)
+  };
+
+  // dots: a solid r4.5 packet with a soft halo; rose = the request, cyan = system traffic
+  const dots = {};
+  function mkDot(name, wire, col){ const g=document.createElementNS(NS,"g"); g.style.display="none";
+    g.innerHTML = `<circle r="10" fill="${col}" opacity=".18"/><circle r="4.5" fill="${col}"/>`; $("dots").appendChild(g);
+    dots[name]={el:g, path:$(wire), len:$(wire).getTotalLength()}; }
+  [["h1","wH1",SEC],["h2","wH2",SEC],["h3","wH3",SEC],["h4","wH4",SEC],["pc","wPC",ACC],["ca","wCA",ACC],
+   ["a1","wA1",SEC],["a2","wA2",SEC],["a3","wA3",SEC],["back","wBack",ACC],["int","wInt",ACC],["t1","wT1",SEC],["t2","wT2",SEC],["t3","wT3",SEC]].forEach(a=>mkDot(...a));
+  function dot(name, p){ const d=dots[name]; const on = p>0 && p<1;
+    d.el.style.display = on ? "" : "none"; d.path.classList.toggle("hot", on);
+    if(on){ const pt=d.path.getPointAtLength(p*d.len); d.el.setAttribute("transform",`translate(${pt.x} ${pt.y})`);} }
+
+  function box(id, on, done, fail){ const g=$(id); g.classList.toggle("on", !!on && !fail); g.classList.toggle("fail", !!fail); g.classList.toggle("done", !on && !fail && !!done); }
+  function txt(id, s, fill){ const e=$(id); if(e.textContent!==s) e.textContent=s; if(fill!==undefined && e.style.fill!==fill) e.style.fill=fill; }
+
+  // log: [at, tag, tagClass, message, right, rightClass]
+  const EV = [
+    [0.3,"portal","k-a","POST /api/agents/invoice-monitor/run · RunAgentInput","alice","k-m"],
+    [2.8,"oidc","k-s","Bearer from Keycloak · roles agent-user, finance-support","✓","k-s"],
+    [4.0,"gw:jwt","k-i","JWT valid · iss /realms/agents · aud agent-platform","✓","k-s"],
+    [5.0,"gw:cel","k-i","access.roles ∋ finance-support","allow","k-s"],
+    [5.6,"audit","k-s","alice · invoice-monitor · thread 7c1e","logged","k-s"],
+    [6.6,"gw:route","k-i","→ langflow-adapter:8080 · x-langflow-flow-id 9b2e…","routed","k-s"],
+    [8.2,"adapter","k-i","stream mode · POST /api/v2/workflows · session 7c1e","RUN_STARTED","k-m"],
+    [9.0,"memory","k-i","load alice::7c1e · 6 earlier messages","1.4k tok","k-m"],
+    [10.3,"svc-key","k-s","runtime key + x-end-user-id alice → :4102","✓","k-s"],
+    [11.2,"llm","k-i","qwen3:8b plan → make_api_request GET /invoices","812 tok","k-m"],
+    [13.2,"tool:erp","k-i","GET /invoices?$filter=status eq 'failed' and postedAt gt '24h'","running","k-m"],
+    [14.8,"tool:erp","k-a","400 Bad Request: invalid datetime literal in $filter","http 400","k-a"],
+    [15.8,"llm","k-i","retry with datetime'2026-10-12T14:02:00'","fix","k-i"],
+    [16.4,"tool:erp","k-i","GET /invoices (fixed filter)","running","k-m"],
+    [17.8,"tool:erp","k-i","1,284 invoices · 3 FAILED to post · Nordic Steel AB","200 ✓","k-s"],
+    [18.1,"llm","k-i","propose: make_api_request POST /invoices/retry · 3 ids","needs ok","k-a"],
+    [18.5,"adapter","k-a","langflow.human_input_required → RUN_FINISHED interrupt","paused","k-a"],
+    [19.2,"portal","k-a","approval card: run make_api_request? (approve / reject)","waiting","k-m"],
+    [20.6,"alice","k-a","resume [{interruptId, status, payload {action_id: approve}}]","approved","k-a"],
+    [21.6,"gw","k-i","resume run · JWT ✓ · finance-support ✓ · audited","✓","k-s"],
+    [22.8,"adapter","k-i","POST /{job}/resume · GET /{job}/events Last-Event-ID 57","resumed","k-m"],
+    [23.6,"tool:erp","k-i","POST /invoices/retry · 3 invoice ids","running","k-m"],
+    [25.0,"tool:erp","k-i","3 invoices re-posted","202 ✓","k-s"],
+    [26.4,"adapter","k-s","drop langflow.* events · map client message ids","clean","k-s"],
+    [27.6,"sse","k-i","RUN_FINISHED · 58 events streamed to the portal","4.1s ✓","k-s"]
+  ];
+  let shown = -1, loops = 0;
+  const pad = n => String(n).padStart(2,"0");
+  function clock(sec){ const s = 14*3600+2*60+10 + Math.floor(sec); return pad(Math.floor(s/3600)%24)+":"+pad(Math.floor(s/60)%60)+":"+pad(s%60); }
+  function renderLog(t){
+    const n = EV.filter(e=>e[0]<=t).length; if(n===shown) return; shown=n;
+    const el=$("lines"); el.innerHTML="";
+    EV.slice(0,n).slice(-7).forEach(e=>{ const d=document.createElement("div"); d.className="ln";
+      d.innerHTML = `<span class="tm2">${clock(loops*L+e[0])}</span><span class="${e[2]}">${e[1]}</span><span class="msg"></span><span class="r ${e[5]}"></span>`;
+      d.querySelector(".msg").textContent=e[3]; d.querySelector(".r").textContent=e[4]; el.appendChild(d); });
+  }
+
+  const PROMPT = "invoices failed to post, 24h?";
+  let lastStage = -1;
+
+  function render(t){
+    const st = STAGES.reduce((a,s,i)=> t>=s ? i : a, 0);
+    if(st!==lastStage){ lastStage=st; for(let i=0;i<5;i++) $("tab"+i).setAttribute("aria-current", i===st ? "true":"false"); }
+    txt("tclock", "T+"+t.toFixed(1)+"s");
+
+    // 01 ask
+    txt("typed", PROMPT.slice(0, Math.floor(seg(t,0.4,2.6)*PROMPT.length)));
+    $("caret").style.opacity = (t<3 && Math.floor(t*2.5)%2===0) ? 1 : 0;
+    box("bEntry", win(t,0.3,3.2)||win(t,19.0,21.6), t>=3.2);
+    const h1 = win(t,2.6,3.6); $("hk1").classList.toggle("on",h1); dot("h1", seg(t,2.6,3.4));
+    dot("pc", pick(seg(t,3.2,3.8), seg(t,21.0,21.6)));
+
+    // 02 gateway check
+    const p1=seg(t,4,5.5), p2=seg(t,4.4,6.4), p3=seg(t,4.8,7.4);
+    setBar(bars.c1,p1,SEC); setBar(bars.c2,p2,SEC); setBar(bars.c3,p3,SEC);
+    txt("vC1", p1>=1?"alice · 300s ✓":p1>0?"verifying…":"—", p1>=1?SEC:MUT);
+    txt("vC2", p2>=1?"finance-support ✓":p2>0?"matching…":"—", p2>=1?SEC:MUT);
+    txt("vC3", p3>=1?"langflow-adapter ✓":p3>0?"resolving…":"—", p3>=1?SEC:MUT);
+    txt("gwMs", (0.9*p1 + 0.4*p2 + 2.1*p3).toFixed(1));
+    box("bGw", win(t,3.8,7.6)||win(t,21.5,22.3), t>=7.6);
+    const h2 = win(t,5.4,6.4)||win(t,21.6,22.4); $("hk2").classList.toggle("on",h2); dot("h2", pick(seg(t,5.4,6.1), seg(t,21.6,22.3)));
+    dot("ca", pick(seg(t,7.5,8.1), seg(t,22.2,22.8)));
+
+    // 03 agent run
+    box("bOrch", win(t,8,19.1)||win(t,22.8,26.1), t>=19.1);
+    txt("turn", t<8?"idle": t<9?"RUN_STARTED": t<10.8?"memory": t<13.2?"planning": t<14.8?"tool call": t<16.4?"retry": t<18?"tool call": t<19.1?"interrupt": t<22.8?"paused · waiting": t<25.4?"resumed": t<27.8?"answering":"done ✓",
+        win(t,14.8,16.4)||win(t,18,22.8)?ACC: t>=27.8?SEC: t>=8?INK:MUT);
+    dot("a2", seg(t,8.3,9)); dot("a1", seg(t,10.2,10.8));
+
+    const m=seg(t,9,10.2); setBar(bars.t2,m,SEC);
+    box("bT2", win(t,8.9,10.4), t>=10.4);
+    txt("sT2", m>=1?"[✓ 6 msgs]": m>0?"[ loading ]":"[ standby ]", m>=1?SEC: m>0?INK:MUT);
+
+    const e1=seg(t,10.8,12.4), fix=seg(t,15.8,16.4);
+    setBar(bars.t1, t>=15.8 ? fix : e1, SEC, t>=15.8 ? INK : STR);
+    box("bT1", win(t,10.6,12.6)||win(t,15.8,16.4), t>=12.6);
+    txt("sT1", t>=16.4?"[✓ $filter fixed]": fix>0?"[ re-planning ]": e1>=1?"[✓ 812 tok]": e1>0?"[ planning ]":"[ standby ]",
+        t>=16.4||(e1>=1&&fix===0)?SEC: e1>0?INK:MUT);
+
+    // the setback: rose = the one thing to notice
+    const failing = win(t,14.8,16.4);
+    let b3, s3="[ standby ]", s3c=MUT;
+    if(t<14.8){ b3=seg(t,13.2,14.8); if(b3>0){ s3="[ calling ]"; s3c=INK; } setBar(bars.t3,b3,SEC); }
+    else if(failing){ setBar(bars.t3,1,ACC); bars.t3.slice(6).forEach(r=>r.setAttribute("fill","var(--line)")); s3="[400 · bad $filter]"; s3c=ACC; }
+    else if(t<23.6){ b3=seg(t,16.4,17.8); setBar(bars.t3,b3,SEC); s3 = b3>=1?(t>=18.1?"[ needs approval ]":"[✓ 3 failed/1,284]"):"[ re-calling ]"; s3c = t>=18.1?ACC: b3>=1?SEC:INK; }
+    else { b3=seg(t,23.6,25); setBar(bars.t3,b3,SEC); s3 = b3>=1?"[✓ 3 re-posted]":"[ re-posting 3 ]"; s3c = b3>=1?SEC:INK; }
+    txt("sT3",s3,s3c);
+    box("bT3", win(t,13,18)||win(t,23.4,25.2), t>=18, failing);
+    dot("back", seg(t,15,15.8));
+
+    const h3 = win(t,10.2,11)||win(t,15.6,16.4); $("hk3").classList.toggle("on",h3);
+    dot("h3", pick(seg(t,10.2,10.9), seg(t,15.6,16.2)));
+
+    const tok = 1.4*m + 0.8*e1 + 0.3*seg(t,14.8,15.8) + 0.6*fix + 0.4*seg(t,17.8,18.4) + 1.1*seg(t,25.4,27.8);
+    const ev = t<8.2 ? 0 : t<18 ? Math.floor(2 + 6*seg(t,10.8,17.8)) : t<22.8 ? 8 + Math.round(3*seg(t,18,19.1))
+             : t<25.4 ? 11 + Math.round(8*seg(t,22.8,25.4)) : 19 + Math.round(39*seg(t,25.4,27.8));
+    txt("evs", "events: "+ev);
+
+    // 04 human ok: interrupt up to the portal, approval card, resume as a new run through the gateway
+    dot("int", seg(t,18.3,19.1));
+    const cardA = seg(t,19.0,19.3) * (1 - seg(t,21.0,21.3));
+    $("card").setAttribute("opacity", cardA.toFixed(2));
+    $("card").style.display = cardA > 0 ? "" : "none";
+    const press = seg(t,20.4,20.9);
+    $("ring").setAttribute("r", (6 + press*34).toFixed(1)); $("ring").setAttribute("opacity", win(t,20.4,20.9) ? (1-press).toFixed(2) : 0);
+    txt("approveT", t>=20.6 ? "✓ ok" : "Approve");
+    dot("a3", pick(seg(t,12.6,13.2), seg(t,23.0,23.6)));
+
+    // 05 stream back
+    ["t1","t2","t3"].forEach(k=>dot(k, seg(t,25.4,26.1)));
+    const h4 = win(t,18.4,19.2)||win(t,26.1,27.3); $("hk4").classList.toggle("on",h4); dot("h4", pick(seg(t,18.4,19.0), seg(t,26.1,26.8)));
+    box("bExit", win(t,26.1,27.8), t>=27.8);
+    txt("sExit", t>=27.8 ? "✓ RUN_FINISHED · 3 invoices re-posted" : t>=26.1 ? "TEXT_MESSAGE_CONTENT streaming…" : "stand by · waiting on the agent",
+        t>=27.8 ? SEC : t>=26.1 ? INK : MUT);
+    box("bSide", h1||h2||h3||h4, false);
+
+    const f1=+(t>=2.6), f2=(t>=5.4)+(t>=21.6), f3=(t>=10.2)+(t>=15.6), f4=(t>=18.4)+(t>=26.1);
+    txt("hk1c","fired "+f1+"×"); txt("hk2c","fired "+f2+"×"); txt("hk3c","fired "+f3+"×"); txt("hk4c","fired "+f4+"×");
+
+    renderLog(t);
+    const calls = (t>=13.2)+(t>=16.4)+(t>=23.6);
+    const human = t>=20.6?`<b class="k-a">[approved]</b>`: t>=19.1?`<b class="k-a">[waiting]</b>`:`<b class="k-m">[—]</b>`;
+    const tool = (t>=17.8&&t<23.6)||t>=25?`<b class="k-s">[${calls} ✓]</b>`: failing?`<b class="k-a">[${calls} · 400]</b>`:`<b class="k-i">[${calls}]</b>`;
+    const s = `stage: <b class="k-i">[${st+1}/${SN.length} ${SN[st]}]</b> model: <b class="k-i">[${tok.toFixed(1)}k tok]</b> tool calls: ${tool} human: ${human} events: <b class="k-i">[${ev}]</b> governance: <b class="k-s">[${f1+f2+f3+f4}]</b> <span class="k-m">[${L}s loop]</span>`;
+    if($("status").innerHTML!==s) $("status").innerHTML = s;
+  }
+
+  let t = 0, last = null, paused = false;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function setPause(p){ paused=p; $("pause").textContent = p ? "▶ play" : "❚❚ pause"; $("pause").setAttribute("aria-pressed", p); }
+  $("pause").addEventListener("click", ()=>setPause(!paused));
+  for(let i=0;i<5;i++) $("tab"+i).addEventListener("click", ()=>{ t = STAGES[i]+0.01; shown=-1; render(t); });
+
+  // export hook: ?export=1 stops the clock; the exporter calls window.render(t) per frame
+  window.LOOP = L;
+  window.render = x => { t = x; shown = -1; render(t); };
+  if (q.has("export")) { root.classList.add("export"); paused = true; }
+
+  function frame(now){
+    if(last!==null && !paused){ t += Math.min(0.1,(now-last)/1000); if(t>=L){ t-=L; loops++; shown=-1; } render(t); }
+    last = now; requestAnimationFrame(frame);
+  }
+  if (q.has("t")) { t = +q.get("t"); setPause(true); }
+  else if (reduce) { t = 29; setPause(true); }
+  render(t);
+  requestAnimationFrame(frame);
+})();
+</script>
+</html>

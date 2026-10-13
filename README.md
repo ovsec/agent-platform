@@ -1,211 +1,379 @@
-# Agent platform
+<h1 align="center">Agent Platform</h1>
 
-A portal and agent catalog (Next.js + assistant-ui, AG-UI) in front of **agentgateway**, with pluggable agent
-runtimes behind it. Langflow is the first runtime (visual builder for developers). Pydantic AI, LangGraph and
-CrewAI come later.
+<p align="center">
+  <strong>One front door for every AI agent.</strong><br>
+  A self-hostable portal, gateway and agent catalog: single sign-on, role-based access, governed model and tool
+  calls, human approval, and an audit trail, whatever runtime an agent is built with.
+</p>
 
-![components](docs/components.svg)
+<p align="center">
+  <a href="https://github.com/ovsec/agent-platform/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ovsec/agent-platform/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: Apache 2.0" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg"></a>
+  <img alt="Protocol: AG-UI" src="https://img.shields.io/badge/protocol-AG--UI-0d9488">
+  <img alt="Gateway: agentgateway" src="https://img.shields.io/badge/gateway-agentgateway-18181b">
+  <img alt="Runtime: Langflow" src="https://img.shields.io/badge/runtime-Langflow-e11d48">
+  <img alt="Auth: OAuth2 / OIDC" src="https://img.shields.io/badge/auth-OAuth2%20%2F%20OIDC-5f5f6b">
+</p>
 
-More diagrams (architecture, data flow; SVG, tldraw and Mermaid): [docs/README.md](docs/README.md).
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#building-and-shipping-agents">Build an agent</a> ·
+  <a href="#human-in-the-loop">Human in the loop</a> ·
+  <a href="docs/README.md">Diagrams</a>
+</p>
 
-**Contract:** every agent is `POST /agents/{slug}/run` on the gateway. It takes a standard AG-UI `RunAgentInput`
-and returns AG-UI SSE events, whatever runtime runs it. The portal uses one plain `HttpAgent` for all agents.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/data-flow-live-dark.gif">
+  <img alt="Animated data flow: alice asks the invoice-monitor agent which invoices failed to post; agentgateway checks the JWT and roles, audits and routes to the Langflow adapter and runtime; the agent loads memory, plans through the gateway's model port and calls the ERP API; a bad filter fails and is fixed; the agent proposes a retry, the tool call pauses as an AG-UI interrupt, alice approves in the portal, the run resumes and the answer streams back." src="docs/data-flow-live-light.gif">
+</picture>
 
-- **Langflow** goes through the **Langflow AG-UI adapter** (`services/langflow-adapter`), which turns standard
-  AG-UI into Langflow Workflow API calls: stream mode for normal flows (token streaming), background jobs for flows
-  that can pause for a human, with Langflow's pause/resume mapped to standard AG-UI interrupts (see
-  "Human in the loop").
-- **Native AG-UI runtimes** (Pydantic AI, LangGraph, CrewAI) are forwarded as is (`runtime: agui`).
+<p align="center"><sub>One agent run, end to end. Open the <a href="docs/data-flow-live.html">interactive version</a> in a browser to step through it.</sub></p>
 
-**Auth** is generic OAuth2/OIDC. The gateway validates access tokens from any IdP that issues:
+---
+
+## Why
+
+Teams build agents with different tools: visual builders, Python frameworks, vendor SDKs. Without a shared layer,
+every agent re-implements login, permissions, model keys, logging and approvals, and users hunt through a dozen
+UIs. Agent Platform puts one governed entry point in front of all of them:
+
+- **For end users:** one portal to find the right agent, chat with streaming answers and tool results, and
+  approve or reject actions before they happen.
+- **For agent developers:** build in the Langflow visual editor (or in code), publish in seconds, no restarts and
+  no auth code to write.
+- **For platform and security teams:** every call authenticated and authorised at the gateway, model and tool
+  access governed centrally, and a record of who called which agent and model.
+
+## Features
+
+- **One contract for every agent.** Each agent is `POST /agents/{slug}/run` on the gateway: standard
+  [AG-UI](https://docs.ag-ui.com) `RunAgentInput` in, AG-UI server-sent events out. The portal uses one client for
+  all of them.
+- **Runtime-agnostic.** [Langflow](https://www.langflow.org) is the first runtime, through a stateless AG-UI
+  adapter. Native AG-UI runtimes (Pydantic AI, LangGraph, CrewAI) are forwarded as they are.
+- **Identity and access built in.** Generic OAuth2/OIDC: any IdP that issues the expected claims works (Keycloak
+  locally; Entra ID and others by configuration). Access is per agent, by role.
+- **Governed model and tool calls.** Agents never hold provider keys. Model (`/v1/chat/completions`) and MCP calls
+  go through [agentgateway](https://agentgateway.dev), which attributes them to the end user and agent.
+- **Human in the loop.** Approval steps in Langflow become standard AG-UI interrupts; the portal renders one card
+  for any interrupt and resumes the run.
+- **Per-user memory.** Conversation memory is scoped to user and thread; one user can never resume another's run.
+- **Zero-restart publishing.** Add, change or remove an agent and the route is live within seconds.
+- **GitOps for agents.** Agents live in their teams' own repositories and release into a catalog through a reusable
+  GitHub workflow, validated against a versioned manifest schema.
+
+## How it works
+
+<p align="center"><img alt="Components and their purpose" src="docs/components.svg" width="100%"></p>
+
+| Component | Role |
+|---|---|
+| **Portal** (`apps/portal`) | Next.js 15 + [assistant-ui](https://www.assistant-ui.com): sign-in, agent catalog, streaming chat, tool cards and approval cards. |
+| **agentgateway** | The front door. Validates tokens, enforces roles per agent, routes to the right runtime, serves governed model/MCP endpoints, and writes the audit log. |
+| **Langflow adapter** (`services/langflow-adapter`) | Speaks standard AG-UI in front of the Langflow Workflow API, including pause and resume for human input. Stateless. |
+| **Langflow runtime** | Runs published visual agents headlessly, with per-user memory. Clients reach it only through the gateway. |
+| **Langflow Builder** | The visual editor where developers build and test flows. |
+| **Identity provider** | Any OIDC IdP. Keycloak runs locally with a ready-made realm. |
+
+**A single run** (the animation above):
+
+1. The user asks a question in the portal. The portal forwards it with the user's access token.
+2. The gateway validates the token (signature, issuer, audience), checks the user's roles against the agent's
+   `access.roles`, writes an audit record, and routes the call. The user's token stops here; the runtime receives
+   only the user id (`x-end-user-id`).
+3. The adapter starts the Langflow flow. The agent loads its memory for this user and thread, calls the model
+   through the gateway's services port, and calls its tools.
+4. If an action needs approval, the run pauses and the portal shows an approval card. The decision resumes the
+   run as a new, fully re-checked request.
+5. AG-UI events stream back through the gateway to the portal.
+
+More views (architecture with every port and store, step-by-step sequence diagrams) are in
+[docs/README.md](docs/README.md), as SVG, editable tldraw and Mermaid.
+
+## Quick start
+
+### Prerequisites
+
+| Tool | Used for |
+|---|---|
+| [Docker](https://docs.docker.com/get-docker/) with Compose | the whole stack |
+| [uv](https://docs.astral.sh/uv/) | the Python scripts (publishing, validation, end-to-end tests) |
+| [Ollama](https://ollama.com) on the host (`:11434`) | the local LLM (any model your agents use, e.g. `qwen3:8b`) |
+
+### Run it
+
+```bash
+git clone https://github.com/ovsec/agent-platform.git && cd agent-platform
+./scripts/init-env.sh                  # create .env with random secrets (once)
+docker compose up -d                   # start the stack
+./scripts/bootstrap-runtime-key.sh     # create the Langflow runtime API key (once; restarts the gateway once)
+
+uv run scripts/publish.py deploy test-agents/hitl-demo --builder   # deploy the built-in test agent
+uv run scripts/e2e.py                  # end-to-end check: auth, human in the loop, services key, audit
+```
+
+Open the portal at **http://localhost:3100** and sign in as `alice` / `alice`.
+
+### Local services
+
+| Service | URL | Notes |
+|---|---|---|
+| Portal | http://localhost:3100 | Branding from `BRAND` in `.env` |
+| agentgateway (agents) | http://localhost:4100 | `POST /agents/{slug}/run` |
+| agentgateway admin UI | http://localhost:4101/ui | "Sign in with SSO" as `admin` / `admin` |
+| agentgateway services | http://localhost:4102 | LLM (`/v1/chat/completions`, `/v1/models`) and MCP (`/mcp`), configured in the admin UI |
+| Langflow Builder | http://localhost:7870 | Visual editor (auto-login, loopback only) |
+| Langflow Builder with login | http://localhost:7871 | oauth2-proxy; roles `agent-developer` or `agent-admin` |
+| Langflow runtime | http://localhost:7880 | Headless; clients go through the gateway |
+| Keycloak | http://localhost:8180 | Admin `admin`, password `KEYCLOAK_ADMIN_PASSWORD` in `.env` |
+| Postgres | localhost:5440 | User `platform` |
+
+### Test users
+
+| User / password | Roles | Can use |
+|---|---|---|
+| `alice` / `alice` | `agent-user`, `finance-support` | the portal and finance agents |
+| `bob` / `bob` | `agent-user` | the portal and general agents |
+| `dev` / `dev` | `agent-user`, `agent-developer` | + the Langflow Builder |
+| `admin` / `admin` | `agent-user`, `agent-admin` | every agent + the gateway admin UI |
+
+> [!WARNING]
+> These users and passwords are for local development only. Never expose the stack with them enabled.
+> `scripts/share.sh on public` disables them automatically.
+
+## Concepts
+
+### The agent manifest
+
+Every agent is a folder with an `agent.yaml` (validated against
+[`schemas/agent.schema.json`](schemas/agent.schema.json), contract v1) and, for Langflow agents, a `flow.json`:
+
+```yaml
+slug: hitl-demo
+name: HITL Demo
+description: 'Test agent: pauses every request for a human Approve / Reject decision.'
+owner_team: platform
+tags: [test, hitl]
+runtime: langflow              # or: agui (with agui: {host, path})
+langflow:
+  flow_id: 7d1e2c3b-4a5f-4e6d-9c8b-0a1b2c3d4e5f
+access:
+  roles: [agent-user]          # who may use it; agent-admin may use every agent
+starter_prompts:
+  - Please delete iFlow ZTEST_Dummy
+```
+
+The gateway routes are generated from these manifests (`scripts/gen-gateway.py`), so access rules live next to
+the agent and are reviewed in its pull requests.
+
+### Identity and access
+
+Authentication is generic OAuth2/OIDC. The gateway accepts access tokens from any IdP that issues:
 
 | Claim | Value |
 |---|---|
 | `iss` | the configured issuer (`gateway/base.yaml`) |
 | `aud` | `agent-platform` |
-| `sub` | user id, forwarded to the runtime as `x-end-user-id` |
-| `roles` | array, matched against `access.roles` in the agent's `agent.yaml`; `agent-admin` can use every agent |
+| `sub` | the user id, forwarded to the runtime as `x-end-user-id` |
+| `roles` | an array, matched against the agent's `access.roles`; roles in `platform.yaml` → `admin_roles` may use every agent |
 
-Locally that IdP is Keycloak. For another environment, change `issuer`/`jwks` and map that IdP's roles into
-`roles` (for example Entra ID app roles, which already use that claim name).
+To use another IdP, change `issuer` and `jwks` in `gateway/base.yaml` and map that IdP's roles into the `roles`
+claim (Entra ID app roles already use that name).
 
-## Layout
+### Runtimes
 
-```
-catalog/<slug>/           agents deployed to the local stack (gitignored; agent-catalog/<env>/ elsewhere)
-test-agents/hitl-demo/    the platform's own test agent (deterministic human-in-the-loop, no model)
-gateway/base.yaml         hand-edited gateway base (listener, OIDC JWT, CORS)
-gateway/config.yaml       GENERATED: uv run scripts/gen-gateway.py
-apps/portal/              Next.js 15 portal: OIDC login, agent list, assistant-ui chat (see below)
-infra/keycloak/           local OIDC realm "agents" (users alice, bob)
-infra/postgres/init.sql   databases: keycloak, langflow_builder, langflow_runtime, portal
-scripts/                  init-env, bootstrap-runtime-key, publish, gen-gateway, validate-agents, e2e, dev-token,
-                          smoke, models, github-setup
-docs/                     diagrams: components, architecture, data flow (.svg, .tldr, .mmd)
-```
-
-platform.yaml             platform-wide settings (admin roles), read by gen-gateway.py and the portal
-components/agentgateway/  the agentgateway Model component that routes every Agent's model calls via the gateway
-services/langflow-adapter standard AG-UI (incl. HITL interrupts) in front of the Langflow runtime
-schemas/agent.schema.json agent manifest contract v1 (validate: uv run scripts/validate-agents.py)
-.github/workflows/        ci.yml (this repo) · agent.yml (reusable: validate + release, called by agent repos @v1)
-templates/                agent-catalog and agent-template repos, created by scripts/github-setup.sh
-
-`gateway/config.yaml` is generated (on every `docker compose up` by the `gateway-config` container, and by
-`publish.py`), never committed.
-
-**Agents are not in this repo.** Each team keeps its agents in its own repo (agent folders: `agent.yaml` +
-`flow.json`, from `templates/agent-template`); for example `../my-agents`. Agent repos release
-through `.github/workflows/agent.yml` into `agent-catalog`; locally, `publish.py deploy` puts agent folders into
-`catalog/`. An agent repo can add local wiring (Builder components, env vars, volumes) with a compose file in
-`COMPOSE_FILE` (`.env`), e.g. `../my-agents/compose.platform.yaml`.
-
-## Local stack
-
-| Service | URL | Notes |
+| Runtime | `runtime:` | How the gateway reaches it |
 |---|---|---|
-| agentgateway | http://localhost:4100 | `/agents/{slug}/run` |
-| agentgateway admin UI | http://localhost:4101/ui | "Sign in with SSO" → Keycloak user `admin`/`admin` (role `agent-admin`) |
-| agentgateway services | http://localhost:4102 | LLM (`/v1/chat/completions`, `/v1/models`) and MCP (`/mcp`) added in the UI; runtimes use `agentgateway:4102` |
-| Langflow Builder | http://localhost:7870 | visual editor (auto login locally) |
-| Langflow Runtime | http://localhost:7880 | headless; clients go through the gateway |
-| Keycloak | http://localhost:8180 | admin user `admin`, password `KEYCLOAK_ADMIN_PASSWORD` in `.env` |
-| Postgres | localhost:5440 | user `platform` |
-| Portal | http://localhost:3100 | container `portal` (built from `apps/portal/Dockerfile`); brand from `BRAND` in `.env` |
+| Langflow | `langflow` | Through the Langflow AG-UI adapter: stream mode for normal flows (token streaming), background jobs for flows that can pause for a human. |
+| Any native AG-UI server (Pydantic AI, LangGraph, CrewAI, …) | `agui` | Forwarded as is, to `agui.host` + `agui.path`. |
 
-Ollama is the host one on `:11434`.
+Langflow agents reach their model through the bundled **agentgateway Model component**
+(`components/agentgateway`), so model keys, guardrails and usage logs stay in the gateway.
+
+## Building and shipping agents
+
+Agents do not live in this repository. Each team keeps its agents in its own repository, created from
+[`templates/agent-template`](templates/agent-template), and releases them into an `agent-catalog` repository
+([`templates/agent-catalog`](templates/agent-catalog)) through the reusable workflow
+[`.github/workflows/agent.yml`](.github/workflows/agent.yml).
+
+**Develop locally** (Builder → agent folder in your repo → local stack):
 
 ```bash
-./scripts/init-env.sh                 # .env with random secrets (once)
-docker compose up -d
-./scripts/bootstrap-runtime-key.sh    # Langflow runtime API key → .secrets/ (one-time; restarts the gateway once)
-uv run scripts/publish.py deploy test-agents/hitl-demo --builder        # the platform's test agent
-uv run scripts/publish.py deploy ../my-agents/agents/* --builder      # agents from agent repos
-uv run scripts/e2e.py                 # end-to-end check (auth, HITL, services key, audit)
-uv run scripts/e2e.py --model-agent invoice-monitor --prompt "How many invoices failed to post in the last 24h?"   # + model, tools
-./scripts/models.sh                   # models of the Ollama the platform uses (host.docker.internal:11434)
+# Export a flow from the Builder into an agent folder (writes flow.json and agent.yaml)
+uv run scripts/publish.py pull "<flow id | endpoint name | name in the Builder>" ../my-agents/agents/my-agent
+uv run scripts/publish.py pull --file some-flow.json ../my-agents/agents/my-agent    # or import a flow file
+
+# Validate, publish to the runtime and route it through the gateway
+uv run scripts/publish.py deploy ../my-agents/agents/my-agent [--set field=value] [--builder]
+
+uv run scripts/publish.py deploy --all          # redeploy everything in catalog/
+uv run scripts/publish.py remove my-agent
 ```
 
-Test users: `alice`/`alice` (roles agent-user, finance-support), `bob`/`bob` (agent-user), `dev`/`dev` (agent-user,
-agent-developer; fresh stacks) and `admin`/`admin` (agent-user, agent-admin).
+`pull` routes the flow's model calls through the gateway. `deploy` validates the manifest, upserts the flow into the
+runtime, copies it to `catalog/<slug>/` and regenerates the gateway routes. `--set field=value` sets a component
+field on every node that has it, for environment-specific values that should never be committed.
 
-The Builder is also behind a login on http://localhost:7871 (`builder-login`, oauth2-proxy): roles agent-developer or
-agent-admin. :7870 stays loopback-only without login.
+**No restarts, anywhere:**
 
-### Sharing the local stack: `scripts/share.sh`
+| Piece | How it picks up a change |
+|---|---|
+| Langflow runtime | Flows are created, updated and removed through its API and are callable immediately. |
+| agentgateway | Watches its generated `config.yaml` and hot-reloads routes within seconds. |
+| Portal | Reads the catalog on every request. |
 
-By URL over Tailscale: `on public` (anyone with the link, Tailscale Funnel) or `on tailnet` (your tailnet only).
-Keycloak roles decide what each person can use.
+**Release:** merging in an agent repository releases to stage; publishing a GitHub release promotes to prod. The
+reusable workflow validates the agent and opens an auto-merging release pull request in `agent-catalog`.
+
+A code agent works the same way: set `runtime: agui` with `agui: {host, path}` and add a `Dockerfile`.
+
+An agent repository can also add local wiring (custom Builder components, environment variables, volumes) with
+its own compose file, listed in `COMPOSE_FILE` in `.env`.
+
+## Human in the loop
+
+Approvals are generic across runtimes. The portal handles **standard AG-UI interrupts**: a `RUN_FINISHED` event
+with `outcome: {type: "interrupt", interrupts: [...]}`, resumed by a new run with
+`resume: [{interruptId, status, payload}]`. One component
+([`interrupts.tsx`](apps/portal/src/components/interrupts.tsx)) renders every interrupt: decision buttons for a
+single-choice schema (labels from `x-labels`), a small form for other schemas, a tool box for `reason: tool_call`,
+and Cancel. Runtimes that already emit standard interrupts need nothing else.
+
+Langflow pauses differently, so the adapter translates. It stays stateless: the interrupt id carries the Langflow
+job id, request id and the event id to continue after.
+
+| Step | Client (standard AG-UI) | Adapter → Langflow |
+|---|---|---|
+| Run | `POST /agents/<slug>/run` | Flow has a Human Input node or a tool with `approval_actions` → background job + `GET /{job}/events`; otherwise stream mode |
+| Pause | `RUN_FINISHED` with an interrupt (`input_required` / `tool_call`, options, `expiresAt`) | `CUSTOM langflow.human_input_required` |
+| Resume | New run with `resume[0].payload = {action_id}` | `POST /{job}/resume {request_id, decision}`, then events after the pause (`Last-Event-ID`) |
+| Cancel | `resume[0].status = cancelled` | `POST /stop {job_id}` |
+
+Another user cannot resume someone else's paused run (Langflow answers "job not found").
+
+**To add an approval step** in the Builder, add a **Human Input** node, or select approval decisions in a tool
+component's **Actions** table, then publish as usual; the adapter picks up the change within 30 seconds. The card
+supports approve and reject; Langflow's `edit` / `respond` decisions are not offered yet.
+
+The built-in `hitl-demo` agent (`scripts/make-hitl-demo.py`) pauses every request for a decision and needs no
+model, which makes it a deterministic test.
+
+## Sharing the local stack
+
+`scripts/share.sh` publishes the local stack over [Tailscale](https://tailscale.com): to anyone with the link
+(`on public`, via Funnel) or to your tailnet only (`on tailnet`). Keycloak roles decide what each person can use.
 
 ```bash
-./scripts/share.sh on public                           # or: on tailnet
-./scripts/share.sh user jane tester finance-support    # portal (+ finance agents); prints a one-off password
-./scripts/share.sh user raj developer                  # portal + Langflow Builder
-./scripts/share.sh user mia admin                      # + gateway admin UI
-./scripts/share.sh off                                 # back to localhost
+./scripts/share.sh on public                      # or: on tailnet
+./scripts/share.sh user jane tester finance-support   # portal (+ finance agents); prints a one-off password
+./scripts/share.sh user raj developer             # portal + Langflow Builder
+./scripts/share.sh user mia admin                 # + gateway admin UI
+./scripts/share.sh off                            # back to localhost
 ```
 
 | Shared URL | Service |
 |---|---|
-| `https://<machine>.ts.net` | Portal, plus Keycloak's sign-in pages (`/realms`, `/resources`) |
-| `https://<machine>.ts.net:8443` | Langflow Builder (login: agent-developer, agent-admin) |
-| `https://<machine>.ts.net:10000/ui` | Gateway admin UI (login: agent-admin) |
+| `https://<machine>.ts.net` | Portal, plus Keycloak's sign-in pages |
+| `https://<machine>.ts.net:8443` | Langflow Builder (roles `agent-developer`, `agent-admin`) |
+| `https://<machine>.ts.net:10000/ui` | Gateway admin UI (role `agent-admin`) |
 
-Funnel allows only ports 443, 8443 and 10000, hence Keycloak on the portal's host. Never shared: the Keycloak admin
-console (`http://localhost:8180/admin`, this machine only), the Builder without login, the runtime, Postgres and the
-gateway's agent/services ports. `on public` disables the test users whose password is their name (`alice`, `bob`,
-`dev`, `admin`; `off` and `on tailnet` enable them again) and turns on brute-force protection. While shared, everyone,
-including you, uses the shared URLs: the IdP has one public address and tokens carry it. The portal redirects
-localhost there. Funnel must be allowed for the machine in the tailnet policy (`funnel` node attribute).
+The Keycloak admin console, the Builder without login, the runtime, Postgres and the gateway's agent and services
+ports are never shared. `on public` disables the local test users and turns on brute-force protection. While
+shared, everyone (you included) uses the shared URLs, because tokens carry the IdP's public address. Funnel must be
+allowed for the machine in your tailnet policy (`funnel` node attribute).
 
-### Local deploys: `scripts/publish.py`
+## Repository layout
 
-No restarts. Builder → agent folder (in the agent repo) → local stack:
-
-```bash
-uv run scripts/publish.py pull "<flow id | endpoint name | name in the Builder>" ../my-agents/agents/my-agent
-uv run scripts/publish.py pull --file some-flow.json ../my-agents/agents/my-agent    # import a flow file
-uv run scripts/publish.py deploy ../my-agents/agents/my-agent [--set field=value] [--builder]
-uv run scripts/publish.py deploy --all          # redeploy catalog/ (e.g. after resetting the Langflow databases)
-uv run scripts/publish.py remove my-agent
+```
+apps/portal/                Next.js portal: OIDC login, agent catalog, assistant-ui chat
+services/langflow-adapter/  standard AG-UI (incl. human-in-the-loop interrupts) in front of the Langflow runtime
+components/agentgateway/    Langflow Model component that routes every model call through the gateway
+gateway/base.yaml           hand-edited gateway base: listeners, OIDC JWT validation, CORS
+gateway/config.yaml         generated by scripts/gen-gateway.py (never committed)
+platform.yaml               platform-wide settings (admin roles), read by the gateway generator and the portal
+schemas/agent.schema.json   agent manifest contract v1
+test-agents/hitl-demo/      the platform's own deterministic test agent
+catalog/                    agents deployed to the local stack (gitignored)
+infra/keycloak/             local OIDC realm "agents" with test users
+infra/postgres/init.sql     databases: keycloak, langflow_builder, langflow_runtime, portal
+scripts/                    setup, publishing, validation, end-to-end tests, sharing, GitHub setup
+templates/                  agent-template and agent-catalog repositories (created by scripts/github-setup.sh)
+.github/workflows/          ci.yml (this repo) and agent.yml (reusable: validate + release, called by agent repos)
+docs/                       diagrams: components, architecture, data flow (SVG, tldraw, Mermaid, animated)
 ```
 
-`pull` routes model calls through the gateway and writes `flow.json` and `agent.yaml` (created if missing; slug =
-folder name) into the agent folder, to commit in the agent repo. `deploy` validates the folders
-(`schemas/agent.schema.json`), upserts the flows into the runtime, copies them to `catalog/<slug>/` and regenerates the
-gateway routes. `--set field=value` sets a component field on every node that has it (environment-specific
-paths/URLs; applied at deploy, never stored in the agent repo).
+## Troubleshooting
 
-## Human in the loop
+<details>
+<summary><strong>Runtime calls fail with "Invalid API key" after recreating a Langflow container</strong></summary>
 
-Generic across runtimes: the portal handles **standard AG-UI interrupts** (RUN_FINISHED
-`outcome: {type: "interrupt", interrupts: [...]}`, resumed by a new run with `resume: [{interruptId, status, payload}]`).
-`apps/portal/src/components/interrupts.tsx` renders one card for any interrupt: decision buttons when the
-`responseSchema` is a single enum (labels from `x-labels`), a small form for other object schemas, a tool box for
-`reason: tool_call`, and Cancel. Runtimes that emit standard interrupts (code agents) need nothing else.
+Recreating a container can give it a new IP address, and the gateway keeps the old one until it restarts. Run
+`docker compose restart agentgateway` after recreating Langflow containers. (Kubernetes Services have stable
+addresses, so this only affects the local stack.)
+</details>
 
-Langflow pauses differently, so the adapter translates (stateless; the interrupt id carries the Langflow job id,
-request id and the SSE event id to continue after):
+<details>
+<summary><strong>The gateway restarts during startup</strong></summary>
 
-| Step | Client (standard AG-UI) | Adapter → Langflow |
-|---|---|---|
-| run | `POST /agents/<slug>/run` | flow has Human Input or a tool with `approval_actions` → `mode: background` job + `GET /{job}/events`; otherwise `mode: stream` |
-| pause | `RUN_FINISHED` with an interrupt (`input_required` / `tool_call`, options, `expiresAt`) | `CUSTOM langflow.human_input_required` |
-| resume | new run with `resume[0].payload = {action_id}` | `POST /{job}/resume {request_id, decision}` + events after the pause (`Last-Event-ID`) |
-| cancel | `resume[0].status = cancelled` | `POST /stop {job_id}` |
+agentgateway fetches the IdP's signing keys (JWKS) at startup, so it waits for Keycloak's health check and restarts
+if the fetch fails. The bootstrap script also restarts it once, because the runtime key file starts empty. Normal
+configuration changes are hot-reloaded.
+</details>
 
-Langflow's end-user check applies: another user cannot resume someone else's pause ("job not found").
+<details>
+<summary><strong>Keycloak realm changes don't apply</strong></summary>
 
-Test agents:
-- `hitl-demo` (`scripts/make-hitl-demo.py`): Chat Input → Human Input → "✅ Approved: …" / "❌ Rejected: …".
-- `invoice-monitor-approval` (`../my-agents`, `scripts/make-approval-demo.py` there): an invoice monitor agent; its `make_api_request` tool
-  needs Approve / Reject (Actions table → `approval_actions`). Approve runs the tool and answers; Reject makes the
-  agent say it cannot answer without it.
+The realm is imported only into an empty database. Stop Keycloak, drop and recreate the `keycloak` database, and
+start it again. Then sign out and back in: old tokens were signed with keys that no longer exist.
+</details>
 
-In the Builder: add a **Human Input** node, or in a tool component's **Actions** table select approval decisions,
-then publish as usual. The adapter picks up the change within 30 s. Langflow's `edit` / `respond` decisions need
-extra fields the card does not offer yet; use approve / reject.
+<details>
+<summary><strong>Langflow rejects <code>LANGFLOW_SECRET_KEY</code></strong></summary>
 
-## Adding an agent (no restarts)
+`LANGFLOW_SECRET_KEY` must be a Fernet key (32 bytes, URL-safe base64). `scripts/init-env.sh` generates one.
+</details>
 
-Nothing needs a restart to add, change or remove an agent (all three verified locally):
+<details>
+<summary><strong>Tool cards show "running…" until the answer arrives</strong></summary>
 
-| Piece | How it picks up a change |
-|---|---|
-| Langflow runtime | Publish the flow through its API: `POST /api/v1/flows/` (create, keeps the flow `id`), `PATCH /api/v1/flows/{id}` (update), `DELETE` (remove). Callable immediately. |
-| agentgateway | Watches `config.yaml` and hot-reloads routes within seconds (`loaded config from File` in the log). Only the `config:` section (storage, database, admin address) is startup-only. |
-| Portal | Reads `catalog/*/agent.yaml` on every request (P2: from the catalog database). |
+Langflow sends `TOOL_CALL_RESULT` only just before the final answer, and with the assistant message's id. The
+portal handles it; the card completes when the result arrives.
+</details>
 
-Steps today:
-1. In the agent's repo (from `templates/agent-template`): build the flow in the Builder and `publish.py pull` it
-   into an agent folder, or write a code agent (`runtime: agui` with `agui: {host, path}` and a `Dockerfile`).
-2. Locally: `publish.py deploy <folder>`. The route is live a few seconds later.
-3. Stage and prod: merge (stage) or publish a GitHub release (prod) in the agent repo; the reusable workflow
-   opens an auto-merging release PR in `agent-catalog`. Deploying from `agent-catalog` comes with the stage runtime.
+<details>
+<summary><strong>Tokens are missing the expected claims</strong></summary>
 
-Langflow does not load flows at startup: `publish.py deploy` is the only way flows get into the runtime (and, with
-`--builder`, the Builder). Redeploying keeps each flow's model; `pull --model` changes it.
+The realm defines its own client scope (`agent-platform`); `sub`, `aud` and `roles` come from that scope's mappers,
+not from Keycloak's built-in scopes.
+</details>
 
-## Gotchas
+The Langflow Workflow API is in beta; its request format is isolated in `services/langflow-adapter`.
 
-- `LANGFLOW_SECRET_KEY` must be a Fernet key (32 bytes, url-safe base64). `init-env.sh` generates it that way.
-- agentgateway fetches JWKS at startup, so it waits for Keycloak's healthcheck and restarts if the fetch fails.
-- Recreating a container (e.g. `docker compose up -d langflow-runtime` after an env change) can give it a new IP;
-  the gateway keeps the old address until it is restarted. That once sent runtime traffic to the Builder
-  ("Invalid API key"). Restart the gateway after recreating Langflow containers. (Kubernetes Services have stable
-  IPs, so this is local-only.)
-- The bootstrap script restarts the gateway once, because the key file starts empty. That is one-time setup;
-  normal config changes are hot-reloaded.
-- The Keycloak realm is imported only into an empty database. To apply realm changes: stop Keycloak,
-  drop/create the `keycloak` database, start Keycloak again.
-- The realm defines its own client scope (`agent-platform`), so Keycloak's built-in scopes aren't created.
-  `sub`, `aud` and `roles` come from that scope's mappers.
-- The Langflow Workflow API is Beta. Its request shape lives only in the adapter (`services/langflow-adapter`).
-- Langflow sends `TOOL_CALL_RESULT` with the assistant message's id (the spec expects a separate tool message)
-  and only just before the final answer, so tool cards show "running…" until then. assistant-ui handles it.
-- After re-importing the realm, sign out and in again: the old session's tokens were signed with keys that no
-  longer exist.
+## Roadmap
+
+- Native code runtimes behind the same contract: Pydantic AI, LangGraph, CrewAI.
+- Shared MCP tools every runtime can use, governed by the gateway.
+- Catalog database for the portal (in place of reading manifests from disk).
+- Stage and production deployments from `agent-catalog`.
+- Edit and free-text responses in approval cards.
+
+## Contributing
+
+Contributions are welcome. Please [open an issue](https://github.com/ovsec/agent-platform/issues) to discuss larger changes first.
+
+1. [Fork the repository](https://github.com/ovsec/agent-platform/fork) and create a branch.
+2. Make your change. If it touches the gateway or authentication, run `uv run scripts/e2e.py` against the local
+   stack.
+3. Changes to the agent contract (`schemas/agent.schema.json`, `.github/workflows/agent.yml`) must be backwards
+   compatible, or ship as a new major version with a migration note for agent teams.
+4. Open a pull request; CI validates the test agents, generates the gateway config and builds the portal.
 
 ## License
 
-[Apache-2.0](LICENSE)
+Agent Platform is licensed under the [Apache License 2.0](LICENSE).
+
+Third-party components keep their own licenses, including [agentgateway](https://github.com/agentgateway/agentgateway),
+[Langflow](https://github.com/langflow-ai/langflow), [Keycloak](https://github.com/keycloak/keycloak) and
+[assistant-ui](https://github.com/assistant-ui/assistant-ui).
